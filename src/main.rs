@@ -5,6 +5,8 @@ use std::env;
 use std::fs;
 use std::io::Write;
 use crate::scanner::scanner::Scanner;
+use crate::parser::parser::Parser;
+use crate::parser::expressions::ast_printer;
 
 fn main(){
   match env::args().len(){
@@ -37,10 +39,8 @@ fn run_prompt(){
 fn run(source: &String) -> Result<(), String>{
   let mut scanner = Scanner::new(source);
   let tokens = scanner.scan_tokens()?;
-
-  for token in tokens{
-    println!("{}", token);
-  }
-
+	let mut	parser = Parser::new(tokens);
+	let expressions = parser.parse()?;
+	println!("{}", ast_printer(&expressions));
   Ok(())
 }

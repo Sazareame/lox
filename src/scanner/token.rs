@@ -4,10 +4,10 @@ use crate::scanner::token_type::{TokenType, Object};
 
 #[derive(Clone)]
 pub struct Token{
-  ttype: TokenType,
-  lexeme: String,
-  literal: Object,
-  line: usize,
+  pub ttype: TokenType,
+  pub lexeme: String,
+  pub literal: Object,
+  pub line: usize,
 }
 
 impl Token {

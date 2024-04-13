@@ -1,1 +1,2 @@
-mod expressions;
+pub mod expressions;
+pub mod parser;

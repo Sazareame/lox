@@ -100,7 +100,7 @@ impl <'a>Scanner<'a>{
     } 
     self.add_token(
       NUMBER,
-      Object::Num((&self.source[self.start..self.current]).parse().unwrap()))
+      Object::Num(self.source[self.start..self.current].parse().unwrap()))
   }
 
   fn identifier(&mut self){

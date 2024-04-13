@@ -1,6 +1,7 @@
 use std::fmt::Display;
 
-#[derive(Clone, Debug)]
+#[allow(non_camel_case_types)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum TokenType{
   LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE, RIGHT_BRACE,
   COMMA, DOT, MINUS, PLUS, SEMICOLON, SLASH, STAR,
