@@ -6,7 +6,6 @@ pub enum Expr{
 	Grouping(Box<Expr>),
 	Literal(Object),
 	Unary(Token, Box<Expr>),
-	Null,
 }
 
 pub fn ast_printer(expr: &Expr) -> String{
@@ -16,7 +15,6 @@ pub fn ast_printer(expr: &Expr) -> String{
 		Grouping(expression) => parenthesize("group", &[expression]),
 		Literal(value) => value.to_string(),
 		Unary(operator, right) => parenthesize(&operator.lexeme, &[right]),
-		Null => "NULL".to_string(),
 	}
 }
 

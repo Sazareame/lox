@@ -1,5 +1,6 @@
 mod scanner;
 mod parser;
+mod interpreter;
 
 use std::env;
 use std::fs;
@@ -7,6 +8,7 @@ use std::io::Write;
 use crate::scanner::scanner::Scanner;
 use crate::parser::parser::Parser;
 use crate::parser::expressions::ast_printer;
+use crate::interpreter::evaluate::interpreter;
 
 fn main(){
   match env::args().len(){
@@ -42,5 +44,6 @@ fn run(source: &String) -> Result<(), String>{
 	let mut	parser = Parser::new(tokens);
 	let expressions = parser.parse()?;
 	println!("{}", ast_printer(&expressions));
+	interpreter(&expressions)?;
   Ok(())
 }
