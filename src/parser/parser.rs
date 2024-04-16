@@ -1,4 +1,5 @@
 use crate::parser::expressions::Expr::{self, *};
+use crate::parser::statement::Stmt;
 use crate::scanner::token::Token;
 use crate::scanner::token_type::TokenType;
 use crate::scanner::token_type::Object;
@@ -46,6 +47,44 @@ impl Parser{
     }
     self.previous()
   }
+
+	fn statement(&mut self) -> Result<Stmt, String>{
+		if self.is_match(&[TokenType::PRINT]){
+			self.print_statement()
+		}else{
+			self.expression_statement()
+		}
+	}
+
+	fn declaration(&mut self) -> Stmt{
+		let res = if self.is_match(&[TokenType::VAR]){self.var_decl()}else{self.statement()};
+		if let Err(e) = res{
+			println!("{}", e);
+			self.synchronize();
+			Stmt::None
+		}else{
+			res.unwrap()
+		}
+	}
+
+	fn var_decl(&mut self) -> Result<Stmt, String>{
+		let name = self.consume(TokenType::IDENTIFIER, "Expect variable name.")?;
+		let initializer = if self.is_match(&[TokenType::EQUAL]){self.expressions()?}else{Expr::None};
+		self.consume(TokenType::SEMICOLON, "Expect `;` after variable declaration.")?;
+		Ok(Stmt::Var(name, Box::new(initializer)))
+	}
+
+	fn print_statement(&mut self) -> Result<Stmt, String>{
+		let value = self.expressions()?;
+		self.consume(TokenType::SEMICOLON, "Expect `;` after value.")?;
+		Ok(Stmt::Print(Box::new(value)))
+	}
+
+	fn expression_statement(&mut self) -> Result<Stmt, String>{
+		let value = self.expressions()?;
+		self.consume(TokenType::SEMICOLON, "Expect `;` after expression.")?;
+		Ok(Stmt::Expression(Box::new(value)))
+	}
 
   fn expressions(&mut self) -> Result<Expr, String>{
     self.equlity()
@@ -120,6 +159,9 @@ impl Parser{
 			self.consume(TokenType::RIGHT_PAREN, "Expect ')' after expression.")?;
 			return Ok(Grouping(Box::new(expr)));
 		}
+		if self.is_match(&[TokenType::IDENTIFIER]){
+			return Ok(Variable(self.previous()));
+		}
 		Err(self.error(self.peek(), "Expect expression"))
 	}
 
@@ -150,16 +192,15 @@ impl Parser{
 				CLASS | FUN | VAR | FOR | IF | WHILE | PRINT | RETURN => return,
 				_ => {}
 			}
+			self.advance();
 		}
-		self.advance();
 	}
 
-	pub fn parse(&mut self) -> Result<Expr, String>{
-		//match self.expressions(){
-			//Ok(expr) => return expr,
-			//Err(e) => println!("{}", e),
-		//}
-		//return Expr::Null;
-		self.expressions()
+	pub fn parse(&mut self) -> Result<Vec<Stmt>, String>{
+		let mut stmts = Vec::new();
+		while !self.is_at_end(){
+			stmts.push(self.declaration());
+		}
+		Ok(stmts)
 	}
 }

@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use crate::scanner::token_type::{TokenType, Object};
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct Token{
   pub ttype: TokenType,
   pub lexeme: String,

@@ -1,11 +1,14 @@
 use crate::scanner::token::Token;
 use crate::scanner::token_type::Object;
 
+#[derive(PartialEq)]
 pub enum Expr{
 	Binary(Box<Expr>, Token, Box<Expr>),
 	Grouping(Box<Expr>),
 	Literal(Object),
 	Unary(Token, Box<Expr>),
+	Variable(Token),
+	None,
 }
 
 pub fn ast_printer(expr: &Expr) -> String{
@@ -15,6 +18,8 @@ pub fn ast_printer(expr: &Expr) -> String{
 		Grouping(expression) => parenthesize("group", &[expression]),
 		Literal(value) => value.to_string(),
 		Unary(operator, right) => parenthesize(&operator.lexeme, &[right]),
+		Variable(name) => name.to_string(),
+		None => "None".to_string(),
 	}
 }
 
