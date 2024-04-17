@@ -7,7 +7,7 @@ use std::fs;
 use std::io::Write;
 use crate::scanner::scanner::Scanner;
 use crate::parser::parser::Parser;
-use crate::parser::expressions::ast_printer;
+// use crate::parser::expressions::ast_printer;
 use crate::interpreter::evaluate::Interpreter;
 
 struct Runner{

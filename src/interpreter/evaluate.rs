@@ -4,15 +4,17 @@ use crate::scanner::token::Token;
 use crate::scanner::token_type::Object;
 use crate::scanner::token_type::TokenType;
 use crate::interpreter::environment::Environ;
+use std::rc::Rc;
+use std::cell::RefCell;
 
 pub struct Interpreter{
-	environment: Environ
+	environment: Rc<RefCell<Environ>>
 }
 
 impl Interpreter{
 
 pub fn new() -> Self{
-	Interpreter{environment: Environ::new()}
+	Interpreter{environment: Rc::new(RefCell::new(Environ::new(None)))}
 }
 
 fn evaluate(&mut self, expr: &Expr) -> Result<Object, String>{
@@ -53,7 +55,12 @@ fn evaluate(&mut self, expr: &Expr) -> Result<Object, String>{
 			};
 			Ok(res)
 		},
-		Variable(name) => self.environment.get(name),
+		Variable(name) => self.environment.borrow().get(name),
+		Assign(name, value) => {
+			let value = self.evaluate(value)?;
+			self.environment.borrow_mut().assign(name, &value)?;
+			Ok(value)
+		}  
 		None => Err("None value during evaluate expression.".to_string()),
 	}
 }
@@ -70,9 +77,22 @@ fn execute(&mut self, stmt:  &Stmt) -> Result<Object, String>{
 			let value = if **initializer != Expr::None{
 				self.evaluate(initializer)?
 			}else{Object::Nil};
-			self.environment.define(name.lexeme.clone(), &value);
+			self.environment.borrow_mut().define(name.lexeme.clone(), &value);
 			Ok(value)
 		},
+		Stmt::Block(blocks) => {
+			let inner_env = Rc::new(RefCell::new(Environ::new(Some(self.environment.clone()))));
+			let previous = self.environment.clone();
+			self.environment = inner_env;
+			for stmt in blocks{
+				if let Err(e) = self.execute(stmt){
+					self.environment = previous;
+					return Err(e);
+				}
+			}
+			self.environment = previous;
+			Ok(Object::Nil)
+		}
 		Stmt::None => Err("None during execute statement.".to_string()),
 	}
 }

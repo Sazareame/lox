@@ -51,9 +51,20 @@ impl Parser{
 	fn statement(&mut self) -> Result<Stmt, String>{
 		if self.is_match(&[TokenType::PRINT]){
 			self.print_statement()
+		}else if self.is_match(&[TokenType::LEFT_BRACE]){
+			self.block()
 		}else{
 			self.expression_statement()
 		}
+	}
+
+	fn block(&mut self) -> Result<Stmt, String>{
+		let mut res = Vec::new();
+		while !self.check(&TokenType::RIGHT_BRACE) && !self.is_at_end(){
+			res.push(self.declaration());
+		}
+		self.consume(TokenType::RIGHT_BRACE, "Expect } after block")?;
+		Ok(Stmt::Block(res))
 	}
 
 	fn declaration(&mut self) -> Stmt{
@@ -87,8 +98,22 @@ impl Parser{
 	}
 
   fn expressions(&mut self) -> Result<Expr, String>{
-    self.equlity()
+    self.assignment()
   }
+
+	fn assignment(&mut self) -> Result<Expr, String>{
+		let expr = self.equlity()?;
+		if self.is_match(&[TokenType::EQUAL]){
+			let equals = self.previous();
+			let value = self.assignment()?;
+			if let Expr::Variable(name) = expr{
+				return Ok(Assign(name, Box::new(value)));
+			}else{
+				return Err(self.error(&equals, "Invalid assignment target."));
+			}
+		}
+		return Ok(expr);
+	}
 
   fn equlity(&mut self) -> Result<Expr, String>{
     let mut expr = self.comparision()?;
