@@ -1,14 +1,16 @@
 use crate::scanner::token::Token;
 use crate::scanner::token_type::Object;
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone)]
 pub enum Expr{
 	Binary(Box<Expr>, Token, Box<Expr>),
+	Call(Box<Expr>, Token, Vec<Expr>),
 	Grouping(Box<Expr>),
 	Literal(Object),
 	Unary(Token, Box<Expr>),
 	Variable(Token),
 	Assign(Token, Box<Expr>),
+	Logical(Box<Expr>, Token, Box<Expr>),
 	None,
 }
 

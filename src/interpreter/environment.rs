@@ -14,8 +14,8 @@ impl Environ{
 			Environ{values: HashMap::new(), enclosing}
 	}
 
-	pub fn define(&mut self, name: String, value: &Object){
-		self.values.insert(name, value.clone());
+	pub fn define(&mut self, name: String, value: Object){
+		self.values.insert(name, value);
 	}
 
 	pub fn get(&self, name: &Token) -> Result<Object, String>{
@@ -29,9 +29,9 @@ impl Environ{
 		}
 	}
 
-	pub fn assign(&mut self, name: &Token, value: &Object) -> Result<(), String>{
+	pub fn assign(&mut self, name: &Token, value: Object) -> Result<(), String>{
 		if let Some(_) = self.values.get(&name.lexeme){
-			self.values.insert(name.lexeme.clone(), value.clone());
+			self.values.insert(name.lexeme.clone(), value);
 			Ok(())
 		}else{
 			if self.enclosing.is_some(){

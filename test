@@ -1,6 +1,7 @@
-while(1 < 2){
-  apple += 3.5;
-  if(apple < pear){
-    apple = "hello";
-  }
+var a = 5;
+
+fun mul(n){
+	return n * a;
 }
+
+print mul(mul(3));

@@ -1,6 +1,8 @@
 use std::fmt::Display;
 use std::ops::{Add, Sub, Mul, Div, Not, Neg};
 use std::cmp::{PartialOrd, PartialEq};
+use crate::scanner::callable::Callable;
+use std::rc::Rc;
 
 #[allow(non_camel_case_types)]
 #[derive(Clone, Debug, PartialEq)]
@@ -27,6 +29,7 @@ pub enum Object{
   Str(String),
   Nil,
   Bool(bool),
+	Callabe(Rc<dyn Callable>)
 }
 
 impl Display for Object{
@@ -36,6 +39,7 @@ impl Display for Object{
       Object::Bool(b) => write!(f, "{}", b),
       Object::Nil => write!(f, "Nil"),
       Object::Str(s) => write!(f, "{}", s),
+			Object::Callabe(callee) => write!(f, "{}", callee)
     }   
   }
 }
@@ -47,6 +51,15 @@ impl Object{
 			Object::Bool(_) => panic!("converting boolean into number"),
 			Object::Nil => 0f64, 
 			Object::Str(s) => s.parse().expect("unable to convert string into number"),
+			_ => panic!("unconvertable type (to number)"),
+		}
+	}
+
+	pub fn is_true(&self) -> bool{
+		match self{
+			Self::Nil => false,
+			Self::Bool(b) => *b,
+			_ => true,
 		}
 	}
 }
@@ -56,8 +69,8 @@ impl Add for Object{
 	fn add(self, rhs: Self) -> Self{
 		if let Self::Str(ls) = self{
 			if let Self::Str(rs) = rhs{
-				return Object::Str(ls + &rs);
-			}else{return Object::Nil;} // meaningless deadcode qaq
+				Object::Str(ls + &rs)
+			}else{Object::Nil} // meaningless deadcode qaq
 		}else{
 		let l = self.to_number();
 		let r = rhs.to_number();
@@ -125,8 +138,9 @@ impl PartialEq for Object{
 				if let Self::Str(rs) = other{
 					return s == rs;
 				}
-				return false;
+				false
 			}
+			_ => false,
 		}
 	}
 }
