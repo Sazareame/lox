@@ -16,12 +16,13 @@ pub trait Callable: Display{
 pub struct FuncType{
 	declaration: Box<Stmt>,
 	arity: usize,
+	closure: Rc<RefCell<Environ>>,
 }
 
 impl FuncType{
-	pub fn new(definition: &Stmt) -> Self{
+	pub fn new(definition: &Stmt, closure_env: &Rc<RefCell<Environ>>) -> Self{
 		if let Stmt::Function(_, params, _) = definition{
-			return Self{declaration: Box::new(definition.clone()), arity: params.len()}
+			return Self{declaration: Box::new(definition.clone()), arity: params.len(), closure: closure_env.clone()}
 		}
 		panic!("It should execute into such circumstance, and that is why I donot like rust's Enum.");
 	}
@@ -29,7 +30,7 @@ impl FuncType{
 
 impl Callable for FuncType{
 	fn call(&self, interpreter: &mut Interpreter, args: Vec<Object>) -> Result<Object, RuntimeMsg>{
-		let call_env = Rc::new(RefCell::new(Environ::new(Some(interpreter.environment.clone()))));
+		let call_env = Rc::new(RefCell::new(Environ::new(Some(self.closure.clone()))));
 		if let Stmt::Function(_, params, body) = self.declaration.as_ref(){
 			for (param, arg) in zip(params, args){
 				call_env.borrow_mut().define(param.lexeme.clone(), arg);

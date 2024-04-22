@@ -151,7 +151,7 @@ pub fn execute(&mut self, stmt:  &Stmt) -> Result<(), RuntimeMsg>{
 			}
 		},
 		Stmt::Function(name, _, _) => {
-			self.environment.borrow_mut().define(name.lexeme.clone(), Object::Callabe(Rc::new(FuncType::new(&stmt))));
+			self.environment.borrow_mut().define(name.lexeme.clone(), Object::Callabe(Rc::new(FuncType::new(&stmt, &self.environment))));
 		},
 		Stmt::ReturnStmt(_, value) => {
 			let ret = if let Expr::None = value.as_ref(){

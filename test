@@ -1,7 +1,13 @@
-var a = 5;
+fun makeCounter(){
+	var i = 0;
+	fun count(){
+		i = i + 1;
+		print i;
+	}
 
-fun mul(n){
-	return n * a;
+	return count;
 }
 
-print mul(mul(3));
+var counter = makeCounter();
+counter();
+counter();
