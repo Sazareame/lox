@@ -117,7 +117,7 @@ impl Chunk {
   fn disassembly_ins(&self, ins: &OpCode) {
     use OpCode::*;
     match ins{
-      Constant(i) => println!("{}'{}", ins, self.constants.get_constant(*i)),
+      Constant(i) => println!("{} {}'{}", ins, i, self.constants.get_constant(*i)),
       _ => println!("{}", ins),
     }
   }
