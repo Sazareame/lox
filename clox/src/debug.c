@@ -18,6 +18,12 @@ int
 disassemble_instruction(Chunk *chunk, int offset){
   printf("%04d ", offset);
   uint8_t ins = chunk->code[offset];
+  // If the line number is the same with the previous instruction,
+  // just omit the line number but ensure they are well-aligned.
+  if(offset && chunk->lines[offset] == chunk->lines[offset - 1])
+    printf("     ");
+  else
+    printf("%4d ", chunk->lines[offset]);
   switch(ins){
     case OP_RETURN: return simple_instruction("OP_RETURN", offset);
     case OP_CONSTANT: return constant_instruction("OP_CONSTANT", chunk, offset);

@@ -12,12 +12,15 @@ typedef enum{
 typedef struct{
   int count;
   int capacity;
+  // A parallel array associated with code array used to represent the
+  // line number the correspoding opcode comes from.
+  int* lines;
   uint8_t* code;
   ValueArray constants;
 }Chunk;
 
 void init_chunk(Chunk* chunk);
-void write_chunk(Chunk* chunk, uint8_t byte);
+void write_chunk(Chunk* chunk, uint8_t byte, int line);
 // Reallocate the chunk to null pointer, and then init it.
 void free_chunk(Chunk* chunk);
 // Add a constant into constant pool in Chunk, then return the index of the added constant.
