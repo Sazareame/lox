@@ -1,3 +1,5 @@
 .vscode/
 clox/.vscode
 clox/build
+build/
+.cache/
