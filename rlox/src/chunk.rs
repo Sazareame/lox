@@ -20,7 +20,7 @@ macro_rules! def_opcode {
       fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         use crate::chunk::$name::*;
         match self {
-          $($variant$(($(clean!($carry)),+))? => write!(f, "{:04} OP_{}", self.to_int(), stringify!($variant).to_ascii_uppercase())),+
+          $($variant$(($(clean!($carry)),+))? => write!(f, "{:04}  {:-10}", self.to_int(), stringify!($variant).to_ascii_uppercase())),+
         }
       }
     }
@@ -84,6 +84,8 @@ impl ConstantPool{
 pub struct Chunk {
   chunks: Vec<OpCode>,
   constants: ConstantPool,
+  /// A parallel array store the line number the associated opcode comes from.
+  lines: Vec<u8>,
 }
 
 impl Chunk {
@@ -91,12 +93,14 @@ impl Chunk {
     Self { 
       chunks: Vec::new(),
       constants: ConstantPool::new(),
+      lines: Vec::new(),
     }
   }
 
   /// Add an OpCode into the underlying data buffer hold by Chunk.
-  pub fn write_chunk(&mut self, code: OpCode) {
+  pub fn write_chunk(&mut self, code: OpCode, line: u8) {
     self.chunks.push(code);
+    self.lines.push(line);
   }
 
   /// Add a constant value into the constant pool it contains, then return the index of that constant in the pool.  
@@ -108,17 +112,19 @@ impl Chunk {
   /// Display the opcodes in Chunk by lines, with additional information if exists.
   pub fn disassembly(&self, title: &str) {
     println!("== {} ==", title);
+    println!("{:16}{}\n", "INSTRUCTION", "LINE");
     self
       .chunks
-      .iter()
-      .for_each(|code| self.disassembly_ins(code));
+      .iter().zip(&self.lines)
+      .for_each(|(ins, line)| self.disassembly_ins(ins, *line));
   }
 
-  fn disassembly_ins(&self, ins: &OpCode) {
+  fn disassembly_ins(&self, ins: &OpCode, line: u8) {
     use OpCode::*;
     match ins{
-      Constant(i) => println!("{} {}'{}", ins, i, self.constants.get_constant(*i)),
-      _ => println!("{}", ins),
+      // (code) (line number) (constant index) (constant value)
+      Constant(i) => println!("{}  {}  {}'{}", ins, line, i, self.constants.get_constant(*i)),
+      _ => println!("{}  {}", ins, line),
     }
   }
 }
