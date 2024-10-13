@@ -1,10 +1,10 @@
 #include "vm.h"
 #include "chunk.h"
-#include "common.h"
 #include "value.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include "debug.h"
+#include "compile.h"
 
 static InterpretResult run(VM*);
 static void reset_stack(VM*);
@@ -21,10 +21,23 @@ free_VM(VM *vm){
 }
 
 InterpretResult
-interpret(VM *vm, Chunk *chunk){
-  vm->chunk = chunk;
-  vm->ip = vm->chunk->code;
-  return run(vm);
+interpret(VM* vm, char const* source){
+  Chunk chunk;
+  init_chunk(&chunk);
+  
+  if(!compile(source, &chunk)){
+    free_chunk(&chunk);
+    return INTERPRET_COMPILE_ERROR;
+  }
+
+  vm->chunk = &chunk;
+  vm->ip = chunk.code;
+
+  InterpretResult res = run(vm);
+
+  free_chunk(&chunk);
+
+  return res;
 }
 
 void
