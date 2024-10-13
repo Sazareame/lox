@@ -46,36 +46,71 @@ reset_stack(VM* vm){
 }
 
 static InterpretResult run(VM* vm){
+  static void* label[] = {
+    &&ins_return,
+    &&ins_constant,
+    &&ins_neg,
+    &&ins_add,
+    &&ins_sub,
+    &&ins_mul,
+    &&ins_div,
+  };
 #define READ_BYTE() (*vm->ip++)
 #define READ_CONSTANT() (vm->chunk->constants.values[READ_BYTE()])
+#define BINARY(op) \
+  do{ \
+    double rhs = pop(vm); \
+    double lhs = pop(vm); \
+    push(vm, lhs op rhs); \
+  }while(0)
 
-  while(1){
+#define DISPATCH() goto *label[READ_BYTE()]
+
+dispatch:
 #ifdef DEBUG_TRACE_EXECUTION
-    disassemble_instruction(vm->chunk, (int)(vm->ip - vm->chunk->code));
+  disassemble_instruction(vm->chunk, (int)(vm->ip - vm->chunk->code));
 
-    printf("== stack ==\n");
-    for(Value* p = vm->stack; p < vm->sp; ++p){
-      printf("[ ");
-      print_value(*p);
-      printf(" ]");
-    }
-    printf("\n");
-#endif
-    uint8_t ins;
-    switch(ins = READ_BYTE()){
-      case OP_RETURN: {
-        print_value(pop(vm));
-        printf("\n");
-        return INTERPRET_OK;
-      }
-      case OP_CONSTANT: {
-        Value constant = READ_CONSTANT();
-        push(vm, constant);
-        break;
-      }
-    }
+  printf("== stack ==\n");
+  for(Value* p = vm->stack; p < vm->sp; ++p){
+    printf("[ ");
+    print_value(*p);
+    printf(" ]");
   }
+  printf("\n");
+#endif
+
+  DISPATCH();
+
+ins_return:
+  print_value(pop(vm));
+  printf("\n");
+  return INTERPRET_OK;
+
+ins_constant:
+  push(vm, READ_CONSTANT());
+  goto dispatch;
+
+ins_neg:
+  push(vm, -pop(vm));
+  goto dispatch;
+
+ins_add:
+  BINARY(+);
+  goto dispatch;
+
+ins_sub:
+  BINARY(-);
+  goto dispatch;
+
+ins_mul:
+  BINARY(*);
+  goto dispatch;
+
+ins_div:
+  BINARY(/);
+  goto dispatch;
 
 #undef READ_BYTE
 #undef READ_CONSTANT
+#undef BINARY
 }
