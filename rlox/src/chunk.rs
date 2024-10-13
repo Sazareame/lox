@@ -14,7 +14,7 @@ mod macro_def {
     }
 
     impl $name {
-      pub fn to_int(&self) -> u32 {
+      pub fn for_int_print(&self) -> u32 {
         unsafe{*<*const _>::from(self).cast()}
       }
     }
@@ -23,7 +23,7 @@ mod macro_def {
       fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         use crate::chunk::$name::*;
         match self {
-          $($variant$(($(clean!($carry)),+))? => write!(f, "{:04}  {:-10}", self.to_int(), stringify!($variant).to_ascii_uppercase())),+
+          $($variant$(($(clean!($carry)),+))? => write!(f, "{:04}  {:-10}", self.for_int_print(), stringify!($variant).to_ascii_uppercase())),+
         }
       }
     }
@@ -33,28 +33,6 @@ mod macro_def {
 
 def_opcode!(OpCode, Return, Constant(u8));
 use crate::value::Value;
-
-// #[repr(C)]
-// pub enum OpCode {
-//   Return,
-//   Constant(u8),
-// }
-//
-// impl OpCode {
-//   pub fn to_int(&self) -> u32 {
-//     unsafe{*<*const _>::from(self).cast()}
-//   }
-// }
-//
-// impl std::fmt::Display for OpCode {
-//   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-//     use OpCode::*;
-//     match self{
-//       Return => write!(f, "{:04} OP_RETURN", self.to_int()),
-//       Constant(i) => wri
-//     }
-//   }
-// }
 
 /// Constant Pool used to store constant define by OP_CONSTANT,  
 /// The OP_CONSTANT could access the value it refers to by the u8 it carried as index.
@@ -125,7 +103,7 @@ impl Chunk {
   /// Display the opcodes in Chunk by lines, with additional information if exists.
   pub fn disassembly(&self, title: &str) {
     println!("== {} ==", title);
-    println!("{:16}{}\n", "INSTRUCTION", "LINE");
+    println!("{:16}LINE\n", "INSTRUCTION");
     self
       .chunks
       .iter()
@@ -133,7 +111,7 @@ impl Chunk {
       .for_each(|(ins, line)| self.disassembly_ins(ins, *line));
   }
 
-  fn disassembly_ins(&self, ins: &OpCode, line: u8) {
+  pub fn disassembly_ins(&self, ins: &OpCode, line: u8) {
     use OpCode::*;
     match ins {
       // (code) (line number) (constant index) (constant value)
