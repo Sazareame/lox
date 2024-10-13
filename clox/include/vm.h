@@ -3,10 +3,17 @@
 
 #include "chunk.h"
 
+// Max stack length
+#define STACK_MAX 255
+
 typedef struct{
   Chunk* chunk;
   // aka. IP register, which stores the address of the next instruction.
   uint8_t* ip;
+  // aka. SP register, which point to the top of stack.
+  Value* sp;
+  // The VM stack.
+  Value stack[STACK_MAX];
 }VM;
 
 typedef enum{
@@ -19,5 +26,7 @@ void init_VM(VM** vm);
 void free_VM(VM* vm);
 
 InterpretResult interpret(VM* vm, Chunk* chunk);
+void push(VM* vm, Value value);
+Value pop(VM* vm);
 
 #endif

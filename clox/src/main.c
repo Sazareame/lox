@@ -15,7 +15,7 @@ main(int argc, char const** argv){
   write_chunk(&chunk, OP_CONSTANT, 2);
   write_chunk(&chunk, constant, 2);
   write_chunk(&chunk, OP_RETURN, 3);
-  disassemble_chunk(&chunk, "test chunk");
+  // disassemble_chunk(&chunk, "test chunk");
 
   interpret(vm, &chunk);
 
