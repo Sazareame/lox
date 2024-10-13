@@ -6,10 +6,21 @@ use chunk::*;
 use vm::VM;
 fn main() {
   let mut chunk = Chunk::new();
-  let offset = chunk.write_constant(3.117);
+
+  let mut offset = chunk.write_constant(1.2);
   chunk.write_chunk(OpCode::Constant(offset), 2);
+
+  offset = chunk.write_constant(3.4);
+  chunk.write_chunk(OpCode::Constant(offset), 2);
+
+  chunk.write_chunk(OpCode::Add, 2);
+
+  offset = chunk.write_constant(5.6);
+  chunk.write_chunk(OpCode::Constant(offset), 2);
+
+  chunk.write_chunk(OpCode::Div, 2);
+  chunk.write_chunk(OpCode::Neg, 2);
   chunk.write_chunk(OpCode::Return, 3);
-  // chunk.disassembly("test");
 
   let mut vm = VM::new(chunk);
   vm.run();

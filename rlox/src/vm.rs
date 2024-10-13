@@ -11,6 +11,16 @@ pub struct VM {
   sp: usize,
 }
 
+macro_rules! binary{
+  ($vm:ident, $op: tt) => {
+    {
+    let rhs = $vm.pop();
+    let lhs = $vm.pop();
+    $vm.push(lhs $op rhs);
+    }
+  }
+}
+
 impl VM {
   pub fn new(chunk: Chunk) -> Self {
     Self { 
@@ -56,6 +66,14 @@ impl VM {
           let constant = self.chunk.get_constant(val.into());
           self.push(*constant);
         }
+        Neg => unsafe{
+          let e = self.stack.get_unchecked_mut(self.sp - 1);
+          *e = -*e;
+        }
+        Add => binary!(self, +),
+        Sub => binary!(self, -),
+        Mul => binary!(self, *),
+        Div => binary!(self, /),
       }
       self.ip += 1;
     }

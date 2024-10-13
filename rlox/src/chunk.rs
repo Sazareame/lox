@@ -31,7 +31,7 @@ mod macro_def {
 }
 }
 
-def_opcode!(OpCode, Return, Constant(u8));
+def_opcode!(OpCode, Return, Constant(u8), Neg, Add, Sub, Mul, Div);
 use crate::value::Value;
 
 /// Constant Pool used to store constant define by OP_CONSTANT,  
