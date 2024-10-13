@@ -23,8 +23,8 @@ macro_rules! binary{
 
 impl VM {
   pub fn new(chunk: Chunk) -> Self {
-    Self { 
-      chunk, 
+    Self {
+      chunk,
       stack: [f64::default(); MAX_STACK],
       ip: 0,
       sp: 0,
@@ -33,13 +33,15 @@ impl VM {
 
   /// Push `value` to stack
   fn push(&mut self, value: Value) {
-    unsafe{*self.stack.get_unchecked_mut(self.sp) = value;}
+    unsafe {
+      *self.stack.get_unchecked_mut(self.sp) = value;
+    }
     self.sp += 1;
   }
 
   fn pop(&mut self) -> Value {
     self.sp -= 1;
-    unsafe{std::mem::take(self.stack.get_unchecked_mut(self.sp))}
+    unsafe { std::mem::take(self.stack.get_unchecked_mut(self.sp)) }
   }
 
   pub fn run(&mut self) {
@@ -50,10 +52,8 @@ impl VM {
 
       println!("{}", ins);
       println!("== stack ==");
-      for i in 0..self.sp{
-        print!("[ {} ]", unsafe {
-          self.stack.get_unchecked(i)
-        })
+      for i in 0..self.sp {
+        print!("[ {} ]", unsafe { self.stack.get_unchecked(i) })
       }
       println!();
 
@@ -66,10 +66,10 @@ impl VM {
           let constant = self.chunk.get_constant(val.into());
           self.push(*constant);
         }
-        Neg => unsafe{
+        Neg => unsafe {
           let e = self.stack.get_unchecked_mut(self.sp - 1);
           *e = -*e;
-        }
+        },
         Add => binary!(self, +),
         Sub => binary!(self, -),
         Mul => binary!(self, *),
