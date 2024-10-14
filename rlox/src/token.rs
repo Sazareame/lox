@@ -86,14 +86,14 @@ pub struct Token {
 }
 
 impl Token{
+  /// Return a stirng the token points to
+  pub fn get_literal(&self) -> String{
+    unsafe{std::slice::from_raw_parts(self.start, self.length).iter().collect()}
+  }
+
+  /// Format the type, literal and line of the token into a readable style.
   pub fn to_string(&self) -> String{
-    let mut s: Vec<char> = Vec::with_capacity(self.length);
-    unsafe {
-      for offset in 0..self.length{
-        s.push(*self.start.add(offset));
-      }
-    }
-    format!("[{}: '{}' | {}]", self.typ, s.into_iter().collect::<String>(), self.line)
+    format!("[{}: '{}' | {}]", self.typ, self.get_literal(), self.line)
   }
 }
 
