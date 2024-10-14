@@ -1,3 +1,5 @@
+use crate::def_tokentype;
+
 #[repr(u8)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy)]
 pub enum Precedence {
@@ -25,9 +27,10 @@ impl Precedence {
   }
 }
 
-#[repr(u8)]
-#[derive(Clone, Copy)]
-pub enum TokenType {
+// #[repr(u8)]
+// #[derive(Clone, Copy)]
+// pub enum TokenType {
+def_tokentype!(
   LParen,
   RParen,
   LBrace,
@@ -66,13 +69,19 @@ pub enum TokenType {
   True,
   Var,
   While,
-  Eof,
-}
+  Eof
+);
 
 pub struct Token<'a> {
   pub typ: TokenType,
   pub literal: &'a [char],
   pub line: usize,
+}
+
+impl<'a> Token<'a>{
+  pub fn to_string(&self) -> String{
+    format!("[{}: '{}' | {}]", self.typ, self.literal.iter().collect::<String>(), self.line)
+  }
 }
 
 #[cfg(test)]

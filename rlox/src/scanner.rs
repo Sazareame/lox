@@ -40,6 +40,26 @@ impl Scanner {
     self.get(self.current)
   }
 
+  fn skip_whitespace(&mut self){
+    loop{
+      match self.peek(){
+        c if !c.is_ascii_whitespace() => return,
+        '\n' => self.line += 1,
+        '/' => {
+          if self.is_match('/'){
+            while self.peek() != '\n' && !self.is_at_end(){
+              self.advance();
+            }
+          }else{
+            return;
+          }
+        }
+        _ => {}
+      }
+      self.advance();
+    }
+  }
+
   fn peek_next(&self) -> Option<char> {
     if self.is_at_end() {
       None
@@ -95,6 +115,14 @@ impl Scanner {
     }
   }
 
+  fn scan_ident(&mut self) -> ScanResult{
+    while Self::is_legal_ident(self.peek()) || self.peek().is_ascii_digit(){
+      self.advance();
+    }
+    let typ = self.scan_ident_type();
+    self.make_token(typ)
+  }
+
   fn scan_ident_type(&mut self) -> TokenType {
     use TokenType::*;
     match self.get(self.start) {
@@ -125,13 +153,20 @@ impl Scanner {
   }
 
   fn check_keyword(&self, start: usize, len: usize, rest: &str, typ: TokenType) -> TokenType {
-    if self.current - self.start == start + len && unsafe{self.source.get_unchecked(self.start + start)}
+    let cmp_start = self.start + start;
+    let cmp_end = cmp_start + len;
+    if self.current - self.start == start + len &&
+    unsafe{self.source.get_unchecked(cmp_start..cmp_end).iter().zip(rest.chars()).all(|(c1, c2)| *c1 == c2)}{
+      typ
+    }else{
+      TokenType::Ident
+    }
   }
 
   fn make_token(&self, typ: TokenType) -> ScanResult {
     Ok(Token {
       typ,
-      literal: unsafe { &self.source.get_unchecked(self.start..self.current) },
+      literal: unsafe { self.source.get_unchecked(self.start..self.current) },
       line: self.line,
     })
   }
@@ -149,6 +184,9 @@ impl Scanner {
 impl Scanner {
   pub fn scan_token(&mut self) -> ScanResult {
     use TokenType::*;
+
+    self.skip_whitespace();
+
     self.start = self.current;
     if self.is_at_end() {
       return self.make_token(Eof);
@@ -172,7 +210,7 @@ impl Scanner {
       '>' => self.make_token_with_check(Ge, Gt, '='),
       '"' => self.scan_string(),
       c if c.is_ascii_digit() => self.scan_number(),
-      c if Self::is_legal_ident(c) => self.scan_ident_type(),
+      c if Self::is_legal_ident(c) => self.scan_ident(),
       _ => Err(ParseError::new(self.line, ch.into(), "unexpect character".into())),
     }
   }
@@ -183,9 +221,19 @@ mod scanner_test {
   use super::*;
 
   #[test]
-  fn construct_scanner() {
+  fn test_scanner() {
     let source = std::fs::read_to_string("./test.lox").unwrap();
-    let scanner = Scanner::new(source);
-    assert_eq!(scanner.source, "1+2=3;\nforddd=345;\naaa".chars().collect::<Vec<_>>())
+    let mut scanner = Scanner::new(source);
+    loop{
+      match scanner.scan_token(){
+        Ok(t) => {
+          println!("{}", t.to_string());
+          if t.typ == TokenType::Eof{
+            break;
+          }
+        }
+        Err(e) => eprintln!("{}", e),
+      }
+    } 
   }
 }
