@@ -7,6 +7,7 @@ mod def_macro;
 mod custom_error;
 mod scanner;
 mod token;
+mod compile;
 
 use chunk::*;
 use vm::VM;

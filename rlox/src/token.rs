@@ -72,6 +72,13 @@ def_tokentype!(
   Eof
 );
 
+impl std::default::Default for TokenType{
+  fn default() -> Self {
+    TokenType::Eof
+  }
+}
+
+#[derive(Default)]
 pub struct Token<'a> {
   pub typ: TokenType,
   pub literal: &'a [char],
@@ -83,6 +90,16 @@ impl<'a> Token<'a>{
     format!("[{}: '{}' | {}]", self.typ, self.literal.iter().collect::<String>(), self.line)
   }
 }
+
+// impl<'a> std::default::Default for Token<'a>{
+//   fn default() -> Self {
+//     Self{
+//       typ: TokenType::Eof,
+//       literal: &[],
+//       line: 0,
+//     }
+//   }
+// }
 
 #[cfg(test)]
 mod token_test {
