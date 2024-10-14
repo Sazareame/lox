@@ -286,12 +286,31 @@ static void
 parse_precedence(Scanner* scanner, Precedence precedence){
   advance(scanner);
   ParseFn prefix_rule = get_rule(parser.previous.type)->prefix;
+  // there must be an unary expression or just a number, which both obtain a
+  // prefix function to parse it.
+  // Therefore, the situation prefix function pointer is null, means that 
+  // something such as ` + 1` etc., which should be an error due to there is 
+  // no expression befor `+` operator.
   if(!prefix_rule){
     error("expect expression");
     return;
   }
   prefix_rule(scanner);
 
+  /*
+    after precessing the prefix expression, such as `-1` in `-1 + expression`,
+    the `current` token now comes to `+` token for infix parsing.
+    if the precedence of `current` token, i.e. `+`, is lower that given argument `precedence`, 
+    then it should not be parsed now, so the function returns. 
+    e.g. 1 * 2 + 3, in such case, the argument precedence is that of `*`, and current token `+`
+    has lower precedence, so the function returns.
+    otherwise, e.g. 1 + 2 * 3, the argument precedence is that of `+`, which is lower than that of `*`,
+    so that this function successively jumps into infix rule to parse the `*` binary expression.
+    after parsing the `*` binary expression, the while statement continue judging whether the next
+    token has higher precedence (now the scanner has come to the token after * and its oprand),
+    in `1 + 2 * 3`, the next token is EOF, which has the lowest precedence, so the function returns.
+    If the expression is `1 + 2 * 3 / 4`, the code will still be in the while loop and precess the `/` token.
+  */
   ParseFn infix_rule = 0;
   // infix expression
   while(precedence <= get_rule(parser.current.type)->precedence){
