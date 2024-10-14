@@ -1,6 +1,12 @@
+#![allow(dead_code)]
 mod chunk;
 mod value;
 mod vm;
+#[macro_use]
+mod def_macro;
+mod custom_error;
+mod scanner;
+mod token;
 
 use chunk::*;
 use vm::VM;

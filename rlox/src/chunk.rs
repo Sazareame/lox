@@ -1,38 +1,7 @@
-#[macro_use]
-mod macro_def {
-  macro_rules! clean {
-    ($typ:ty) => {
-      _
-    };
-  }
-  macro_rules! def_opcode {
-  ($name:ident, $($variant:ident$(($($carry:ty),+))?),+) => {
-    #[derive(Clone, Copy)]
-    #[repr(C)]
-    pub enum $name {
-      $($variant$(($($carry),+))?),*
-    }
-
-    impl $name {
-      pub fn for_int_print(&self) -> u32 {
-        unsafe{*<*const _>::from(self).cast()}
-      }
-    }
-
-    impl std::fmt::Display for $name {
-      fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        use crate::chunk::$name::*;
-        match self {
-          $($variant$(($(clean!($carry)),+))? => write!(f, "{:04}  {:-10}", self.for_int_print(), stringify!($variant).to_ascii_uppercase())),+
-        }
-      }
-    }
-  }
-}
-}
+use crate::def_opcode;
+use crate::value::Value;
 
 def_opcode!(OpCode, Return, Constant(u8), Neg, Add, Sub, Mul, Div);
-use crate::value::Value;
 
 /// Constant Pool used to store constant define by OP_CONSTANT,  
 /// The OP_CONSTANT could access the value it refers to by the u8 it carried as index.
@@ -42,9 +11,7 @@ struct ConstantPool {
 
 impl ConstantPool {
   pub fn new() -> Self {
-    Self {
-      constants: Vec::new(),
-    }
+    Self { constants: Vec::new() }
   }
 
   /// Add a constant to the pool, then return its index in the underlaying data buffer.  
@@ -115,13 +82,7 @@ impl Chunk {
     use OpCode::*;
     match ins {
       // (code) (line number) (constant index) (constant value)
-      Constant(i) => println!(
-        "{}  {}  {}'{}",
-        ins,
-        line,
-        i,
-        self.constants.get_constant(*i)
-      ),
+      Constant(i) => println!("{}  {}  {}'{}", ins, line, i, self.constants.get_constant(*i)),
       _ => println!("{}  {}", ins, line),
     }
   }
