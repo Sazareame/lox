@@ -78,16 +78,33 @@ impl std::default::Default for TokenType{
   }
 }
 
-#[derive(Default)]
-pub struct Token<'a> {
+pub struct Token {
   pub typ: TokenType,
-  pub literal: &'a [char],
+  pub start: *const char,
+  pub length: usize,
   pub line: usize,
 }
 
-impl<'a> Token<'a>{
+impl Token{
   pub fn to_string(&self) -> String{
-    format!("[{}: '{}' | {}]", self.typ, self.literal.iter().collect::<String>(), self.line)
+    let mut s: Vec<char> = Vec::with_capacity(self.length);
+    unsafe {
+      for offset in 0..self.length{
+        s.push(*self.start.add(offset));
+      }
+    }
+    format!("[{}: '{}' | {}]", self.typ, s.into_iter().collect::<String>(), self.line)
+  }
+}
+
+impl Default for Token{
+  fn default() -> Self {
+    Self{
+      typ: TokenType::Eof,
+      start: 0 as *const char,
+      length: 0,
+      line: 0,
+    }
   }
 }
 

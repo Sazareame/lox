@@ -8,7 +8,7 @@ pub struct Scanner {
   source: Vec<char>,
 }
 
-type ScanResult<'a> = Result<Token<'a>, ParseError>;
+type ScanResult<'a> = Result<Token, ParseError>;
 
 // Constructor
 impl Scanner {
@@ -166,7 +166,8 @@ impl Scanner {
   fn make_token(&self, typ: TokenType) -> ScanResult {
     Ok(Token {
       typ,
-      literal: unsafe { self.source.get_unchecked(self.start..self.current) },
+      start: unsafe{self.source.get_unchecked(self.start) as *const char},
+      length: self.current - self.start,
       line: self.line,
     })
   }

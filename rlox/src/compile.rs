@@ -11,15 +11,15 @@ struct ParseRule{
 
 const TOKEN_NUM: usize = 39;
 
-pub struct Compiler<'a>{
+pub struct Compiler{
   chunk: Chunk,
-  current: Token<'a>,
-  previous: Token<'a>,
+  current: Token,
+  previous: Token,
   scanner: Scanner,
   rules: [ParseRule; TOKEN_NUM],
 }
 
-impl<'a> Compiler<'a>{
+impl<'a> Compiler{
   pub fn new(source: String) -> Self{
     // FIXME This look-up table is extreamely ugly and terrible.
     let rules: [ParseRule; TOKEN_NUM] = [
@@ -72,18 +72,18 @@ impl<'a> Compiler<'a>{
     }
   }
 
-  // fn advance(&mut self){
-  //   std::mem::swap(&mut self.previous, &mut self.current);
-  //   loop {
-  //     match self.scanner.scan_token(){
-  //       Ok(t) => {
-  //         self.current = t;
-  //         return;
-  //       }
-  //       Err(e) => eprintln!("{}", e),
-  //     }
-  //   }
-  // }
+  fn advance(&mut self){
+    std::mem::swap(&mut self.previous, &mut self.current);
+    loop {
+      match self.scanner.scan_token(){
+        Ok(t) => {
+          self.current = t;
+          return;
+        }
+        Err(e) => eprintln!("{}", e),
+      }
+    }
+  }
 
 }
 
