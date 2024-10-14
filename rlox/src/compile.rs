@@ -19,7 +19,7 @@ pub struct Compiler{
   rules: [ParseRule; TOKEN_NUM],
 }
 
-impl<'a> Compiler{
+impl Compiler{
   pub fn new(source: String) -> Self{
     // FIXME This look-up table is extreamely ugly and terrible.
     let rules: [ParseRule; TOKEN_NUM] = [
@@ -83,6 +83,33 @@ impl<'a> Compiler{
         Err(e) => eprintln!("{}", e),
       }
     }
+  }
+
+  fn get_rule(&self, typ: TokenType) -> &ParseRule{
+    unsafe{self.rules.get_unchecked(typ as usize)}
+  }
+
+  fn expression(&mut self){
+    self.parse_precedence(Precedence::Assign);
+    let prefix_rule = self.get_rule(self.previous.typ).prefix;
+    // TODO
+  }
+
+  fn consume(&mut self, typ: TokenType, msg: String){
+    todo!() // TODO
+  }
+
+  // Parse the op whose precedence is equal to or higher the `precedence`
+  fn parse_precedence(&mut self, precedence: Precedence){
+    self.advance();
+
+  }
+
+  pub fn compile(&mut self){
+    self.advance();
+    self.expression();
+    self.consume(TokenType::Eof, "expect end of expression".into());
+    todo!() // TODO
   }
 
 }
