@@ -8,7 +8,7 @@ pub struct Scanner {
   source: Vec<char>,
 }
 
-type ScanResult<'a> = Result<Token<'a>, ParseError>;
+type ScanResult = Result<Token, ParseError>;
 
 // Constructor
 impl Scanner {
@@ -166,7 +166,8 @@ impl Scanner {
   fn make_token(&self, typ: TokenType) -> ScanResult {
     Ok(Token {
       typ,
-      literal: unsafe { self.source.get_unchecked(self.start..self.current) },
+      start: self.start,
+      end: self.current,
       line: self.line,
     })
   }
@@ -227,7 +228,7 @@ mod scanner_test {
     loop{
       match scanner.scan_token(){
         Ok(t) => {
-          println!("{}", t.to_string());
+          println!("{}", t.to_string(&scanner.source));
           if t.typ == TokenType::Eof{
             break;
           }

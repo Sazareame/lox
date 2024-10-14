@@ -79,15 +79,24 @@ impl std::default::Default for TokenType{
 }
 
 #[derive(Default)]
-pub struct Token<'a> {
+pub struct Token {
   pub typ: TokenType,
-  pub literal: &'a [char],
+  /// the start position of literal in specific source (`Vec<char>`)
+  pub start: usize,
+  /// the end position (next) of literal in specific source (`Vec<char>`)
+  pub end: usize,
   pub line: usize,
 }
 
-impl<'a> Token<'a>{
-  pub fn to_string(&self) -> String{
-    format!("[{}: '{}' | {}]", self.typ, self.literal.iter().collect::<String>(), self.line)
+impl Token{
+  /// Format the type, literal and line to readable string.
+  pub fn to_string(&self, source: &[char]) -> String{
+    format!("[{}: '{}' | {}]", self.typ, self.get_literal(source), self.line)
+  }
+
+  /// Retrieve the literal from source
+  pub fn get_literal(&self, source: &[char]) -> String{
+    unsafe {source.get_unchecked(self.start..self.end).iter().collect()}
   }
 }
 
