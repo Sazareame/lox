@@ -35,10 +35,9 @@ init_scanner(char const* source){
 Token
 scan_token(Scanner *scanner){
   // TODO unexpect character after reaching the eof.
-  if(is_at_end(scanner)) return make_token(scanner, TOKEN_EOF);
-
   skip_whitespace(scanner);
   scanner->start = scanner->current;
+  if(is_at_end(scanner)) return make_token(scanner, TOKEN_EOF);
   char c = advance(scanner);
 
   if(is_digit(c)) return number(scanner);
