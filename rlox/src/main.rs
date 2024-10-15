@@ -9,29 +9,67 @@ mod custom_error;
 mod scanner;
 mod token;
 
-use clap::{Arg, ArgAction, Command};
+use crate::vm::VM;
+use crate::compile::Compiler;
 
-struct Args {
-  print_scan_res: bool,
-  print_bytecode_res: bool,
-  input: Option<String>,
-}
-
-fn parse_args() -> Args {
-  let args = Command::new("rlox")
-    .author("Sazareame")
-    .about("Lox Interpreter in Rust")
-    .version("0.1.0")
-    .arg(Arg::new("input").help("Input source file"))
-    .arg(Arg::new("lexer").short('l').long("lex").action(ArgAction::SetTrue))
-    .arg(Arg::new("code").short('c').long("code").action(ArgAction::SetTrue))
-    .get_matches();
-
-  Args {
-    print_scan_res: args.get_flag("lexer"),
-    print_bytecode_res: args.get_flag("code"),
-    input: args.get_one::<String>("input").cloned(),
+fn parse_args() -> Option<String> {
+  let args = std::env::args().collect::<Vec<_>>();
+  if args.len() > 2 {
+    eprintln!("Unexpected argument(s)!. Usage: lox [script]");
+    std::process::exit(1);
+  }
+  assert!(!args.is_empty());
+  if args.len() == 1 {
+    None
+  }else{
+    Some(args[1].clone())
   }
 }
 
-fn main() {}
+fn repl() {
+  use std::io::BufRead;
+  use std::io::Write;
+  let mut reader = std::io::BufReader::new(std::io::stdin());
+  let mut buf = String::new();
+  loop {
+    print!("> ");
+    std::io::stdout().flush().unwrap();
+    reader.read_line(&mut buf).unwrap();
+    if buf.is_empty(){
+      continue;
+    } 
+    let mut compiler = Compiler::new(buf.clone());
+    if let Err(e) = compiler.compile(){
+      eprintln!("{}", e);
+      continue;
+    }
+    let mut vm = VM::new(compiler.return_chunk());
+    vm.run();
+    buf.clear();
+  }
+}
+
+fn run_source(path: String) {
+  let source = std::fs::read_to_string(path);
+  if let Err(e) = source{
+    eprintln!("Error during read file: {}", e);
+    std::process::exit(1);
+  }else{
+    let mut compiler = Compiler::new(source.unwrap());
+    if let Err(e) = compiler.compile(){
+      eprintln!("{}", e);
+      std::process::exit(1);
+    }
+    let mut vm = VM::new(compiler.return_chunk());
+    vm.run();
+  }
+}
+
+fn main() {
+  let path = parse_args();
+  if let Some(path) = path{
+    run_source(path);
+  }else{
+    repl();
+  }
+}

@@ -303,6 +303,10 @@ impl Compiler {
     Ok(())
   }
 
+  pub fn return_chunk(self) -> Chunk {
+    self.chunk
+  }
+
   /// Emit single bytecode to `self.chunk`
   pub fn emit_byte(&mut self, typ: OpCode) {
     self.chunk.write_chunk(typ, self.previous.line as u8);
@@ -383,7 +387,7 @@ mod compile_test {
 
   #[test]
   fn test_compile() {
-    let source = std::fs::read_to_string("./compile_expression.lox").unwrap();
+    let source = std::fs::read_to_string("./test.lox").unwrap();
     let mut compiler = Compiler::new(source);
     compiler.compile().unwrap();
     compiler.chunk.disassembly("result");
