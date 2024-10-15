@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include "debug.h"
 #include "compile.h"
+#include <stdarg.h>
 
 static InterpretResult run(VM*);
 static void reset_stack(VM*);
@@ -51,6 +52,11 @@ pop(VM* vm){
   return *--vm->sp;
 }
 
+// Peek the last dist element in stack.
+static Value
+peek(VM* vm, int dist){
+  return vm->sp[-1 - dist];
+}
 
 // Reset the %rsp.
 static void 
@@ -58,10 +64,28 @@ reset_stack(VM* vm){
   vm->sp = vm->stack;
 }
 
+// Raise RuntimeError, reset the stack.
+static void
+runtime_error(VM* vm, char const* format, ...){
+  va_list args;
+  va_start(args, format);
+  vfprintf(stderr, format, args);
+  va_end(args);
+
+  fputc('\n', stderr);
+  size_t instruction = vm->ip - vm->chunk->code - 1;
+  int line = vm->chunk->lines[instruction];
+  fprintf(stderr, "[line %d]", line);
+  reset_stack(vm);
+}
+
 static InterpretResult run(VM* vm){
   static void* label[] = {
     &&ins_return,
     &&ins_constant,
+    &&ins_nil,
+    &&ins_true,
+    &&ins_false,
     &&ins_neg,
     &&ins_add,
     &&ins_sub,
@@ -70,11 +94,15 @@ static InterpretResult run(VM* vm){
   };
 #define READ_BYTE() (*vm->ip++)
 #define READ_CONSTANT() (vm->chunk->constants.values[READ_BYTE()])
-#define BINARY(op) \
+#define BINARY(type, op) \
   do{ \
-    double rhs = pop(vm); \
-    double lhs = pop(vm); \
-    push(vm, lhs op rhs); \
+    if(!IS_NUMBER(peek(vm, 0)) || !IS_NUMBER(peek(vm, 1))) { \
+      runtime_error(vm, "oprands must be numbers."); \
+      return INTERPRET_RUNTIME_ERROR; \
+    } \
+    double rhs = AS_NUMBER(pop(vm)); \
+    double lhs = AS_NUMBER(pop(vm)); \
+    push(vm, type(lhs op rhs)); \
   }while(0)
 
 #define DISPATCH() goto *label[READ_BYTE()]
@@ -103,24 +131,40 @@ ins_constant:
   push(vm, READ_CONSTANT());
   goto dispatch;
 
+ins_nil:
+  push(vm, NIL_VAL);
+  goto dispatch;
+
+ins_true:
+  push(vm, BOOL_VAL(true));
+  goto dispatch;
+
+ins_false:
+  push(vm, BOOL_VAL(false));
+  goto dispatch;
+
 ins_neg:
-  push(vm, -pop(vm));
+  if(!IS_NUMBER(peek(vm, 0))){
+    runtime_error(vm, "oprand of '-' must be a number.");
+    return INTERPRET_RUNTIME_ERROR;
+  }
+  push(vm, NUMBER_VAL(-AS_NUMBER(pop(vm))));
   goto dispatch;
 
 ins_add:
-  BINARY(+);
+  BINARY(NUMBER_VAL, +);
   goto dispatch;
 
 ins_sub:
-  BINARY(-);
+  BINARY(NUMBER_VAL, -);
   goto dispatch;
 
 ins_mul:
-  BINARY(*);
+  BINARY(NUMBER_VAL, *);
   goto dispatch;
 
 ins_div:
-  BINARY(/);
+  BINARY(NUMBER_VAL, /);
   goto dispatch;
 
 #undef READ_BYTE

@@ -74,6 +74,7 @@ static void expression(Scanner*);
 static void grouping(Scanner*);
 static void unary(Scanner*);
 static void binary(Scanner*);
+static void literal(Scanner*);
 
 /*
 this table has three columns, which are:
@@ -110,17 +111,17 @@ ParseRule rules[] = {
   [TOKEN_AND]           = {NULL,     NULL,   PREC_NONE},
   [TOKEN_CLASS]         = {NULL,     NULL,   PREC_NONE},
   [TOKEN_ELSE]          = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_FALSE]         = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_FALSE]         = {literal,     NULL,   PREC_NONE},
   [TOKEN_FOR]           = {NULL,     NULL,   PREC_NONE},
   [TOKEN_FUN]           = {NULL,     NULL,   PREC_NONE},
   [TOKEN_IF]            = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_NIL]           = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_NIL]           = {literal,     NULL,   PREC_NONE},
   [TOKEN_OR]            = {NULL,     NULL,   PREC_NONE},
   [TOKEN_PRINT]         = {NULL,     NULL,   PREC_NONE},
   [TOKEN_RETURN]        = {NULL,     NULL,   PREC_NONE},
   [TOKEN_SUPER]         = {NULL,     NULL,   PREC_NONE},
   [TOKEN_THIS]          = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_TRUE]          = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_TRUE]          = {literal,     NULL,   PREC_NONE},
   [TOKEN_VAR]           = {NULL,     NULL,   PREC_NONE},
   [TOKEN_WHILE]         = {NULL,     NULL,   PREC_NONE},
   [TOKEN_ERROR]         = {NULL,     NULL,   PREC_NONE},
@@ -221,8 +222,8 @@ emit_bytes(uint8_t byte1, uint8_t byte2){
 
 static void
 number(){
-  Value value = strtod(parser.previous.start, NULL);
-  emit_const(value);
+  double value = strtod(parser.previous.start, NULL);
+  emit_const(NUMBER_VAL(value));
 }
 
 static void
@@ -274,6 +275,16 @@ binary(Scanner* scanner){
     case TOKEN_MINUS: emit_byte(OP_SUB); break;
     case TOKEN_STAR: emit_byte(OP_MUL); break;
     case TOKEN_SLASH: emit_byte(OP_DIV); break;
+    default: return;
+  }
+}
+
+static void
+literal(Scanner* scanner){
+  switch(parser.previous.type){
+    case TOKEN_FALSE: emit_byte(OP_FALSE); break;
+    case TOKEN_NIL: emit_byte(OP_NIL); break;
+    case TOKEN_TRUE: emit_byte(OP_TRUE); break;
     default: return;
   }
 }
