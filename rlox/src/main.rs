@@ -9,26 +9,29 @@ mod custom_error;
 mod scanner;
 mod token;
 
-use chunk::*;
-use vm::VM;
-fn main() {
-  let mut chunk = Chunk::new();
+use clap::{Arg, ArgAction, Command};
 
-  let mut offset = chunk.write_constant(1.2);
-  chunk.write_chunk(OpCode::Constant(offset), 2);
-
-  offset = chunk.write_constant(3.4);
-  chunk.write_chunk(OpCode::Constant(offset), 2);
-
-  chunk.write_chunk(OpCode::Add, 2);
-
-  offset = chunk.write_constant(5.6);
-  chunk.write_chunk(OpCode::Constant(offset), 2);
-
-  chunk.write_chunk(OpCode::Div, 2);
-  chunk.write_chunk(OpCode::Neg, 2);
-  chunk.write_chunk(OpCode::Return, 3);
-
-  let mut vm = VM::new(chunk);
-  vm.run();
+struct Args {
+  print_scan_res: bool,
+  print_bytecode_res: bool,
+  input: Option<String>,
 }
+
+fn parse_args() -> Args {
+  let args = Command::new("rlox")
+    .author("Sazareame")
+    .about("Lox Interpreter in Rust")
+    .version("0.1.0")
+    .arg(Arg::new("input").help("Input source file"))
+    .arg(Arg::new("lexer").short('l').long("lex").action(ArgAction::SetTrue))
+    .arg(Arg::new("code").short('c').long("code").action(ArgAction::SetTrue))
+    .get_matches();
+
+  Args {
+    print_scan_res: args.get_flag("lexer"),
+    print_bytecode_res: args.get_flag("code"),
+    input: args.get_one::<String>("input").cloned(),
+  }
+}
+
+fn main() {}
