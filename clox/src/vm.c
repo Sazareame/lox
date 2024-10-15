@@ -58,6 +58,11 @@ peek(VM* vm, int dist){
   return vm->sp[-1 - dist];
 }
 
+// Whether value is false in Lox
+static bool is_false(Value value){
+  return IS_NIL(value) || (IS_BOOL(value) && !AS_BOOL(value));
+}
+
 // Reset the %rsp.
 static void 
 reset_stack(VM* vm){
@@ -91,6 +96,7 @@ static InterpretResult run(VM* vm){
     &&ins_sub,
     &&ins_mul,
     &&ins_div,
+    &&ins_not,
   };
 #define READ_BYTE() (*vm->ip++)
 #define READ_CONSTANT() (vm->chunk->constants.values[READ_BYTE()])
@@ -165,6 +171,10 @@ ins_mul:
 
 ins_div:
   BINARY(NUMBER_VAL, /);
+  goto dispatch;
+
+ins_not:
+  push(vm, BOOL_VAL(is_false(pop(vm))));
   goto dispatch;
 
 #undef READ_BYTE
