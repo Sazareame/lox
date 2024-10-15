@@ -31,54 +31,18 @@ impl Precedence {
 // #[derive(Clone, Copy)]
 // pub enum TokenType {
 def_tokentype!(
-  LParen,
-  RParen,
-  LBrace,
-  RBrace,
-  Comma,
-  Dot,
-  Minus,
-  Plus,
-  Semicolon,
-  Slash,
-  Star,
-  Bang,
-  EBang,
-  Equal,
-  EEqual,
-  Gt,
-  Ge,
-  Lt,
-  Le,
-  Ident,
-  Str,
-  Num,
-  And,
-  Class,
-  Else,
-  False,
-  For,
-  Fun,
-  If,
-  Nil,
-  Or,
-  Print,
-  Ret,
-  Super,
-  This,
-  True,
-  Var,
-  While,
+  LParen, RParen, LBrace, RBrace, Comma, Dot, Minus, Plus, Semicolon, Slash, Star, Bang, EBang, Equal, EEqual, Gt, Ge,
+  Lt, Le, Ident, Str, Num, And, Class, Else, False, For, Fun, If, Nil, Or, Print, Ret, Super, This, True, Var, While,
   Eof
 );
 
-impl std::default::Default for TokenType{
+impl std::default::Default for TokenType {
   fn default() -> Self {
     TokenType::Eof
   }
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct Token {
   pub typ: TokenType,
   /// the start position of literal in specific source (`Vec<char>`)
@@ -88,15 +52,15 @@ pub struct Token {
   pub line: usize,
 }
 
-impl Token{
+impl Token {
   /// Format the type, literal and line to readable string.
-  pub fn to_string(&self, source: &[char]) -> String{
+  pub fn to_string(&self, source: &[char]) -> String {
     format!("[{}: '{}' | {}]", self.typ, self.get_literal(source), self.line)
   }
 
   /// Retrieve the literal from source
-  pub fn get_literal(&self, source: &[char]) -> String{
-    unsafe {source.get_unchecked(self.start..self.end).iter().collect()}
+  pub fn get_literal(&self, source: &[char]) -> String {
+    unsafe { source.get_unchecked(self.start..self.end).iter().collect() }
   }
 }
 

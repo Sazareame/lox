@@ -23,6 +23,11 @@ impl Scanner {
       source,
     }
   }
+
+  /// Return a unmutable slice of source
+  pub fn source(&self) -> &[char] {
+    &self.source
+  }
 }
 
 // help functions
@@ -40,17 +45,17 @@ impl Scanner {
     self.get(self.current)
   }
 
-  fn skip_whitespace(&mut self){
-    loop{
-      match self.peek(){
+  fn skip_whitespace(&mut self) {
+    loop {
+      match self.peek() {
         c if !c.is_ascii_whitespace() => return,
         '\n' => self.line += 1,
         '/' => {
-          if self.is_match('/'){
-            while self.peek() != '\n' && !self.is_at_end(){
+          if self.is_match('/') {
+            while self.peek() != '\n' && !self.is_at_end() {
               self.advance();
             }
-          }else{
+          } else {
             return;
           }
         }
@@ -115,8 +120,8 @@ impl Scanner {
     }
   }
 
-  fn scan_ident(&mut self) -> ScanResult{
-    while Self::is_legal_ident(self.peek()) || self.peek().is_ascii_digit(){
+  fn scan_ident(&mut self) -> ScanResult {
+    while Self::is_legal_ident(self.peek()) || self.peek().is_ascii_digit() {
       self.advance();
     }
     let typ = self.scan_ident_type();
@@ -155,10 +160,18 @@ impl Scanner {
   fn check_keyword(&self, start: usize, len: usize, rest: &str, typ: TokenType) -> TokenType {
     let cmp_start = self.start + start;
     let cmp_end = cmp_start + len;
-    if self.current - self.start == start + len &&
-    unsafe{self.source.get_unchecked(cmp_start..cmp_end).iter().zip(rest.chars()).all(|(c1, c2)| *c1 == c2)}{
+    if self.current - self.start == start + len
+      && unsafe {
+        self
+          .source
+          .get_unchecked(cmp_start..cmp_end)
+          .iter()
+          .zip(rest.chars())
+          .all(|(c1, c2)| *c1 == c2)
+      }
+    {
       typ
-    }else{
+    } else {
       TokenType::Ident
     }
   }
@@ -225,16 +238,16 @@ mod scanner_test {
   fn test_scanner() {
     let source = std::fs::read_to_string("./test.lox").unwrap();
     let mut scanner = Scanner::new(source);
-    loop{
-      match scanner.scan_token(){
+    loop {
+      match scanner.scan_token() {
         Ok(t) => {
           println!("{}", t.to_string(&scanner.source));
-          if t.typ == TokenType::Eof{
+          if t.typ == TokenType::Eof {
             break;
           }
         }
         Err(e) => eprintln!("{}", e),
       }
-    } 
+    }
   }
 }
