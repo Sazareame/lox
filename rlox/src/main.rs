@@ -4,10 +4,10 @@ mod value;
 mod vm;
 #[macro_use]
 mod def_macro;
+mod compile;
 mod custom_error;
 mod scanner;
 mod token;
-mod compile;
 
 use chunk::*;
 use vm::VM;

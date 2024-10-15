@@ -248,26 +248,51 @@ impl Compiler {
     unsafe { self.rules.get_unchecked(typ as usize) }
   }
 
-  fn expression(&mut self) -> ParseError {
+  fn expression(&mut self) -> ParseResult {
     self.parse_precedence(Precedence::Assign)
   }
 
-  fn consume(&mut self, typ: TokenType, msg: String) {
-    todo!() // TODO
+  fn consume(&mut self, typ: TokenType, msg: String) -> ParseResult {
+    if self.current.typ == typ{
+      self.advance();
+      Ok(())
+    }else{
+      Err(self.raise_at_current(msg))
+    }
+  }
+
+  /// Raise a `ParseError` from current token.
+  fn raise_at_current(&self, msg: String) -> ParseError {
+    ParseError::new(
+      self.current.line,
+      self.current.get_literal(self.scanner.source()),
+      msg,
+    )
+  }
+
+  /// Raise a `ParseError` from previous token.
+  fn raise_at_previous(&self, msg: String) -> ParseError {
+    ParseError::new(
+      self.previous.line,
+      self.previous.get_literal(self.scanner.source()),
+      msg,
+    )
   }
 
   // Parse the op whose precedence is equal to or higher the `precedence`
   fn parse_precedence(&mut self, precedence: Precedence) -> ParseResult {
     self.advance();
     let prefix_rule = self.get_rule(self.previous.typ).prefix.ok_or_else(|| {
-      ParseError::new(
-        self.previous.line,
-        self.previous.get_literal(self.scanner.source()),
-        "expect expression".into(),
-      )
+      self.raise_at_previous("expect expression".into())
     })?;
     prefix_rule(self);
-    // TODO
+    let mut infix_rule;
+    while precedence <= self.get_rule(self.current.typ).precedence {
+      self.advance();
+      infix_rule = self.get_rule(self.previous.typ).infix.expect("unreachable");
+      infix_rule(self);
+    }
+    Ok(())
   }
 
   pub fn compile(&mut self) {
