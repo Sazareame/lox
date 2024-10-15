@@ -298,7 +298,9 @@ impl Compiler {
   pub fn compile(&mut self) -> CompileResult {
     self.advance();
     self.expression()?;
-    self.consume(TokenType::Eof, "expect end of expression".into())
+    self.consume(TokenType::Eof, "expect end of expression".into())?;
+    self.end_compile();
+    Ok(())
   }
 
   /// Emit single bytecode to `self.chunk`
@@ -315,6 +317,14 @@ impl Compiler {
 
   pub fn make_const(&mut self, value: Value) -> u8 {
     self.chunk.write_constant(value)
+  }
+
+  fn end_compile(&mut self) {
+    self.emit_return();
+  }
+
+  fn emit_return(&mut self) {
+    self.emit_byte(OpCode::Return);
   }
 }
 

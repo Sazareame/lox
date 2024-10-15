@@ -46,7 +46,8 @@ impl Chunk {
     }
   }
 
-  /// Fetch the opcode pc point to.
+  /// Fetch the opcode pc point to.   
+  /// **NOTE** the `pc` must be valid index or UB.
   pub fn fetch(&self, pc: usize) -> OpCode {
     unsafe { *self.chunks.get_unchecked(pc) }
   }

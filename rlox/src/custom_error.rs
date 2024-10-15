@@ -1,4 +1,3 @@
-use crate::token::{Token, TokenType};
 #[derive(Debug)]
 pub struct CompileError {
   line: usize,
