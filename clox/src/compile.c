@@ -57,7 +57,7 @@ static void emit_bytes(uint8_t, uint8_t);
 // return the current working chunk
 static Chunk* current_chunk();
 // endup work aftering most of the procedure of compiling
-static void end_compiler();
+static void end_compile();
 // emit a OP_RETURN
 static void emit_return();
 
@@ -138,6 +138,7 @@ compile(const char *source, Chunk* chunk){
   advance(scanner);
   expression(scanner);
   consume(scanner, TOKEN_EOF, "expect end of expression");
+  end_compile();
   return !parser.had_error;
 }
 

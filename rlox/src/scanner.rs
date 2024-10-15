@@ -1,4 +1,4 @@
-use crate::custom_error::ParseError;
+use crate::custom_error::CompileError;
 use crate::token::*;
 
 pub struct Scanner {
@@ -8,7 +8,7 @@ pub struct Scanner {
   source: Vec<char>,
 }
 
-type ScanResult = Result<Token, ParseError>;
+type ScanResult = Result<Token, CompileError>;
 
 // Constructor
 impl Scanner {
@@ -112,7 +112,7 @@ impl Scanner {
     if self.is_match('"') {
       self.make_token(TokenType::Str)
     } else {
-      Err(ParseError::new(
+      Err(CompileError::new(
         self.line,
         self.get(self.current - 1).into(),
         "unterminated string".into(),
@@ -225,7 +225,7 @@ impl Scanner {
       '"' => self.scan_string(),
       c if c.is_ascii_digit() => self.scan_number(),
       c if Self::is_legal_ident(c) => self.scan_ident(),
-      _ => Err(ParseError::new(self.line, ch.into(), "unexpect character".into())),
+      _ => Err(CompileError::new(self.line, ch.into(), "unexpect character".into())),
     }
   }
 }
