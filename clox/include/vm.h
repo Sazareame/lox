@@ -28,5 +28,7 @@ void free_VM(VM* vm);
 InterpretResult interpret(VM* vm, char const* source);
 void push(VM* vm, Value value);
 Value pop(VM* vm);
+// Whether two Lox Value is equal.
+bool values_equal(Value a, Value b);
 
 #endif

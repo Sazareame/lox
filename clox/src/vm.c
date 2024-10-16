@@ -59,8 +59,20 @@ peek(VM* vm, int dist){
 }
 
 // Whether value is false in Lox
-static bool is_false(Value value){
+static bool
+is_false(Value value){
   return IS_NIL(value) || (IS_BOOL(value) && !AS_BOOL(value));
+}
+
+bool
+values_equal(Value a, Value b){
+  if(a.type != b.type) return false;
+  switch(a.type){
+    case VAL_BOOL: return AS_BOOL(a) == AS_BOOL(b);
+    case VAL_NIL: return true;
+    case VAL_NUMBER: return AS_NUMBER(a) == AS_NUMBER(b);
+    default: return false;
+  }
 }
 
 // Reset the %rsp.
@@ -97,6 +109,9 @@ static InterpretResult run(VM* vm){
     &&ins_mul,
     &&ins_div,
     &&ins_not,
+    &&ins_equal,
+    &&ins_greater,
+    &&ins_less,
   };
 #define READ_BYTE() (*vm->ip++)
 #define READ_CONSTANT() (vm->chunk->constants.values[READ_BYTE()])
@@ -175,6 +190,22 @@ ins_div:
 
 ins_not:
   push(vm, BOOL_VAL(is_false(pop(vm))));
+  goto dispatch;
+
+ins_equal:
+  do{
+    Value b = pop(vm);
+    Value a = pop(vm);
+    push(vm, BOOL_VAL(values_equal(a, b)));
+  }while(0);
+  goto dispatch;
+
+ins_greater:
+  BINARY(BOOL_VAL, >);
+  goto dispatch;
+
+ins_less:
+  BINARY(BOOL_VAL, <);
   goto dispatch;
 
 #undef READ_BYTE
