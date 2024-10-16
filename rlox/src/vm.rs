@@ -12,7 +12,7 @@ pub struct VM {
 }
 
 macro_rules! binary{
-  ($vm:ident, $op: tt) => {
+  ($vm:ident, $op: tt, $typ:ident) => {
     {
     if !$vm.peek(0).is_number() || !$vm.peek(1).is_number() {
       $vm.raise("operand must be numbers".into());
@@ -20,7 +20,7 @@ macro_rules! binary{
     }
     let rhs = $vm.pop().as_number().unwrap();
     let lhs = $vm.pop().as_number().unwrap();
-    $vm.push($crate::value::Value::Number(lhs $op rhs));
+    $vm.push($crate::value::Value::$typ(lhs $op rhs));
     }
   }
 }
@@ -62,16 +62,10 @@ impl VM {
   pub fn run(&mut self) {
     use OpCode::*;
     let mut ins;
+    println!("== RUNNING VM ==");
     loop {
       ins = self.chunk.fetch(self.ip);
-
-      println!("{}", ins);
-      println!("== stack ==");
-      for i in 0..self.sp {
-        print!("[ {} ]", unsafe { self.stack.get_unchecked(i) })
-      }
-      println!();
-
+      println!("EXECUING INSTRUCTION: {}", ins);
       match ins {
         Return => {
           println!("{}\n", self.pop());
@@ -91,15 +85,34 @@ impl VM {
             return;
           }
         },
+        Not => {
+          let a = self.pop().is_false();
+          self.push(Value::Boolean(a));
+        }
         True => self.push(Value::Boolean(true)),
         False => self.push(Value::Boolean(false)),
         Nil => self.push(Value::Nil),
-        Add => binary!(self, +),
-        Sub => binary!(self, -),
-        Mul => binary!(self, *),
-        Div => binary!(self, /),
+        Add => binary!(self, +, Number),
+        Sub => binary!(self, -, Number),
+        Mul => binary!(self, *, Number),
+        Div => binary!(self, /, Number),
+        Greater => binary!(self, >, Boolean),
+        Less => binary!(self, <, Boolean),
+        Equal => {
+          let rhs = self.pop();
+          let lhs = self.pop();
+          self.push(Value::Boolean(lhs.equals(&rhs)));
+        }
       }
       self.ip += 1;
+      println!("== STACK ==");
+      if self.sp == 0{
+        print!("EMPTY");
+      }
+      for i in 0..self.sp {
+        print!("[ {} ]", unsafe { self.stack.get_unchecked(i) })
+      }
+      println!();
     }
   }
 }

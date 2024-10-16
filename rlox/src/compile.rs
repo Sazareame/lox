@@ -84,14 +84,14 @@ impl Compiler {
         precedence: Precedence::Factor,
       }, // Star
       ParseRule {
-        prefix: None,
+        prefix: Some(unary),
         infix: None,
         precedence: Precedence::None,
       }, // Bang
       ParseRule {
         prefix: None,
-        infix: None,
-        precedence: Precedence::None,
+        infix: Some(binary),
+        precedence: Precedence::Equality,
       }, // EBang
       ParseRule {
         prefix: None,
@@ -100,28 +100,28 @@ impl Compiler {
       }, // Equal
       ParseRule {
         prefix: None,
-        infix: None,
-        precedence: Precedence::None,
+        infix: Some(binary),
+        precedence: Precedence::Equality,
       }, // EEqual
       ParseRule {
         prefix: None,
-        infix: None,
-        precedence: Precedence::None,
+        infix: Some(binary),
+        precedence: Precedence::Comparison,
       }, // Gt
       ParseRule {
         prefix: None,
-        infix: None,
-        precedence: Precedence::None,
+        infix: Some(binary),
+        precedence: Precedence::Comparison,
       }, // Ge
       ParseRule {
         prefix: None,
-        infix: None,
-        precedence: Precedence::None,
+        infix: Some(binary),
+        precedence: Precedence::Comparison,
       }, // Lt
       ParseRule {
         prefix: None,
-        infix: None,
-        precedence: Precedence::None,
+        infix: Some(binary),
+        precedence: Precedence::Comparison,
       }, // Le
       ParseRule {
         prefix: None,
@@ -312,6 +312,12 @@ impl Compiler {
     self.chunk.write_chunk(typ, self.previous.line as u8);
   }
 
+  /// Emit two bytecodes to `self.chunk`
+  pub fn emit_bytes(&mut self, typ: (OpCode, OpCode)) {
+    self.emit_byte(typ.0);
+    self.emit_byte(typ.1);
+  }
+
   /// Store a constant to constant pool in chunk, then emit a
   /// OP_CONST to chunk.
   pub fn emit_const(&mut self, value: Value) {
@@ -325,6 +331,7 @@ impl Compiler {
 
   fn end_compile(&mut self) {
     self.emit_return();
+    self.chunk.disassembly("CHUNK");
   }
 
   fn emit_return(&mut self) {
@@ -345,6 +352,7 @@ fn unary(compiler: &mut Compiler) -> CompileResult {
   compiler.parse_precedence(Precedence::Unary)?;
   match op_type {
     Minus => compiler.emit_byte(OpCode::Neg),
+    Bang => compiler.emit_byte(OpCode::Not),
     _ => {}
   }
   Ok(())
@@ -376,6 +384,12 @@ fn binary(compiler: &mut Compiler) -> CompileResult {
     Minus => compiler.emit_byte(OpCode::Sub),
     Star => compiler.emit_byte(OpCode::Mul),
     Slash => compiler.emit_byte(OpCode::Div),
+    EEqual => compiler.emit_byte(OpCode::Equal),
+    EBang => compiler.emit_bytes((OpCode::Equal, OpCode::Not)),
+    Le => compiler.emit_bytes((OpCode::Greater, OpCode::Not)),
+    Ge => compiler.emit_bytes((OpCode::Less, OpCode::Not)),
+    Lt => compiler.emit_byte(OpCode::Less),
+    Gt => compiler.emit_byte(OpCode::Greater),
     _ => {}
   }
   Ok(())

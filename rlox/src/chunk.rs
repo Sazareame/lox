@@ -1,7 +1,7 @@
 use crate::def_opcode;
 use crate::value::Value;
 
-def_opcode!(OpCode, Return, Constant(u8), Neg, Add, Sub, Mul, Div, True, False, Nil);
+def_opcode!(OpCode, Return, Constant(u8), Neg, Add, Sub, Mul, Div, True, False, Nil, Not, Greater, Less, Equal);
 
 /// Constant Pool used to store constant define by OP_CONSTANT,  
 /// The OP_CONSTANT could access the value it refers to by the u8 it carried as index.
@@ -77,6 +77,7 @@ impl Chunk {
       .iter()
       .zip(&self.lines)
       .for_each(|(ins, line)| self.disassembly_ins(ins, *line));
+    println!();
   }
 
   pub fn disassembly_ins(&self, ins: &OpCode, line: u8) {
