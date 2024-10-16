@@ -154,7 +154,7 @@ impl Compiler {
         precedence: Precedence::None,
       }, // Else
       ParseRule {
-        prefix: None,
+        prefix: Some(literal),
         infix: None,
         precedence: Precedence::None,
       }, // False
@@ -174,7 +174,7 @@ impl Compiler {
         precedence: Precedence::None,
       }, // If
       ParseRule {
-        prefix: None,
+        prefix: Some(literal),
         infix: None,
         precedence: Precedence::None,
       }, // Nil
@@ -204,7 +204,7 @@ impl Compiler {
         precedence: Precedence::None,
       }, // This
       ParseRule {
-        prefix: None,
+        prefix: Some(literal),
         infix: None,
         precedence: Precedence::None,
       }, // True
@@ -376,6 +376,17 @@ fn binary(compiler: &mut Compiler) -> CompileResult {
     Minus => compiler.emit_byte(OpCode::Sub),
     Star => compiler.emit_byte(OpCode::Mul),
     Slash => compiler.emit_byte(OpCode::Div),
+    _ => {}
+  }
+  Ok(())
+}
+
+fn literal(compiler: &mut Compiler) -> CompileResult {
+  use TokenType::*;
+  match compiler.previous.typ {
+    True => compiler.emit_byte(OpCode::True),
+    False => compiler.emit_byte(OpCode::False),
+    Nil => compiler.emit_byte(OpCode::Nil),
     _ => {}
   }
   Ok(())

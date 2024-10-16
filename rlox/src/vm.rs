@@ -1,5 +1,4 @@
 use crate::chunk::*;
-use crate::custom_error;
 use crate::value::Value;
 
 const MAX_STACK: usize = 255;
@@ -15,9 +14,13 @@ pub struct VM {
 macro_rules! binary{
   ($vm:ident, $op: tt) => {
     {
-    let rhs = $vm.pop();
-    let lhs = $vm.pop();
-    $vm.push(lhs $op rhs);
+    if !$vm.peek(0).is_number() || !$vm.peek(1).is_number() {
+      $vm.raise("operand must be numbers".into());
+      return;
+    }
+    let rhs = $vm.pop().as_number().unwrap();
+    let lhs = $vm.pop().as_number().unwrap();
+    $vm.push($crate::value::Value::Number(lhs $op rhs));
     }
   }
 }
@@ -50,9 +53,10 @@ impl VM {
     unsafe { self.stack.get_unchecked(self.sp - offset - 1) }
   }
 
-  // Raise a Runtime Error with massage.
-  fn raise(self, msg: String) {
+  // Raise a Runtime Error with massage, reset the stack.
+  fn raise(&mut self, msg: String) {
     eprintln!("RuntimeError: [line {}] {}", self.chunk.get_line_nu(self.ip), msg);
+    self.sp = 0;
   }
 
   pub fn run(&mut self) {
@@ -77,12 +81,19 @@ impl VM {
           let constant = self.chunk.get_constant(val.into());
           self.push(*constant);
         }
-        Neg => unsafe {
-          match self.peek(0) {
-            Value::Number(b) => *b = -*b,
-            _ => self.raise("oprand must be number".into()),
+        Neg => match self.peek(0) {
+          Value::Number(_) => {
+            let n = self.pop().as_number().unwrap();
+            self.push(Value::Number(-n));
+          }
+          _ => {
+            self.raise("oprand must be number".into());
+            return;
           }
         },
+        True => self.push(Value::Boolean(true)),
+        False => self.push(Value::Boolean(false)),
+        Nil => self.push(Value::Nil),
         Add => binary!(self, +),
         Sub => binary!(self, -),
         Mul => binary!(self, *),

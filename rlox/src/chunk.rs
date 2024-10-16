@@ -1,7 +1,7 @@
 use crate::def_opcode;
 use crate::value::Value;
 
-def_opcode!(OpCode, Return, Constant(u8), Neg, Add, Sub, Mul, Div);
+def_opcode!(OpCode, Return, Constant(u8), Neg, Add, Sub, Mul, Div, True, False, Nil);
 
 /// Constant Pool used to store constant define by OP_CONSTANT,  
 /// The OP_CONSTANT could access the value it refers to by the u8 it carried as index.

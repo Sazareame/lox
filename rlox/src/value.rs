@@ -30,6 +30,10 @@ impl Value {
     }
   }
 
+  pub fn is_number(&self) -> bool {
+    matches!(self, Value::Number(_))
+  }
+
   pub fn as_bool(&self) -> Option<bool> {
     if let Self::Boolean(b) = self {
       Some(*b)
