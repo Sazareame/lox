@@ -9,8 +9,8 @@ mod custom_error;
 mod scanner;
 mod token;
 
-use crate::vm::VM;
 use crate::compile::Compiler;
+use crate::vm::VM;
 
 fn parse_args() -> Option<String> {
   let args = std::env::args().collect::<Vec<_>>();
@@ -21,7 +21,7 @@ fn parse_args() -> Option<String> {
   assert!(!args.is_empty());
   if args.len() == 1 {
     None
-  }else{
+  } else {
     Some(args[1].clone())
   }
 }
@@ -35,11 +35,11 @@ fn repl() {
     print!("> ");
     std::io::stdout().flush().unwrap();
     reader.read_line(&mut buf).unwrap();
-    if buf.is_empty(){
+    if buf.is_empty() {
       continue;
-    } 
+    }
     let mut compiler = Compiler::new(buf.clone());
-    if let Err(e) = compiler.compile(){
+    if let Err(e) = compiler.compile() {
       eprintln!("{}", e);
       continue;
     }
@@ -51,12 +51,12 @@ fn repl() {
 
 fn run_source(path: String) {
   let source = std::fs::read_to_string(path);
-  if let Err(e) = source{
+  if let Err(e) = source {
     eprintln!("Error during read file: {}", e);
     std::process::exit(1);
-  }else{
+  } else {
     let mut compiler = Compiler::new(source.unwrap());
-    if let Err(e) = compiler.compile(){
+    if let Err(e) = compiler.compile() {
       eprintln!("{}", e);
       std::process::exit(1);
     }
@@ -67,9 +67,9 @@ fn run_source(path: String) {
 
 fn main() {
   let path = parse_args();
-  if let Some(path) = path{
+  if let Some(path) = path {
     run_source(path);
-  }else{
+  } else {
     repl();
   }
 }

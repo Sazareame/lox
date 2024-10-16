@@ -87,4 +87,8 @@ impl Chunk {
       _ => println!("{}  {}", ins, line),
     }
   }
+
+  pub fn get_line_nu(&self, index: usize) -> u8 {
+    unsafe { *self.lines.get_unchecked(index) }
+  }
 }

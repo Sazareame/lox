@@ -359,7 +359,7 @@ fn number(compiler: &mut Compiler) -> CompileResult {
     .get_literal(compiler.scanner.source())
     .parse()
     .expect("Fatal: number literal convert error");
-  compiler.emit_const(value);
+  compiler.emit_const(Value::Number(value));
   Ok(())
 }
 

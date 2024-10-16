@@ -1,4 +1,5 @@
 use crate::chunk::*;
+use crate::custom_error;
 use crate::value::Value;
 
 const MAX_STACK: usize = 255;
@@ -25,7 +26,7 @@ impl VM {
   pub fn new(chunk: Chunk) -> Self {
     Self {
       chunk,
-      stack: [f64::default(); MAX_STACK],
+      stack: [Value::default(); MAX_STACK],
       ip: 0,
       sp: 0,
     }
@@ -42,6 +43,16 @@ impl VM {
   fn pop(&mut self) -> Value {
     self.sp -= 1;
     unsafe { std::mem::take(self.stack.get_unchecked_mut(self.sp)) }
+  }
+
+  /// Peek the stack value with `offset` from the stack top.
+  fn peek(&self, offset: usize) -> &Value {
+    unsafe { self.stack.get_unchecked(self.sp - offset - 1) }
+  }
+
+  // Raise a Runtime Error with massage.
+  fn raise(self, msg: String) {
+    eprintln!("RuntimeError: [line {}] {}", self.chunk.get_line_nu(self.ip), msg);
   }
 
   pub fn run(&mut self) {
@@ -67,8 +78,10 @@ impl VM {
           self.push(*constant);
         }
         Neg => unsafe {
-          let e = self.stack.get_unchecked_mut(self.sp - 1);
-          *e = -*e;
+          match self.peek(0) {
+            Value::Number(b) => *b = -*b,
+            _ => self.raise("oprand must be number".into()),
+          }
         },
         Add => binary!(self, +),
         Sub => binary!(self, -),
