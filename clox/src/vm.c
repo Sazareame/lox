@@ -17,6 +17,7 @@ void
 init_VM(VM** vm){
   *vm = (VM*)malloc(sizeof(VM));
   reset_stack(*vm);
+  (*vm)->objects = NULL;
 }
 
 void

@@ -4,3 +4,4 @@ clox/build
 build/
 .cache/
 rlox/target/
+log.txt

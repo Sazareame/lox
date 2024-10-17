@@ -16,6 +16,7 @@ typedef enum{
 
 struct Obj{
   ObjType type;
+  struct Obj* next; // intrusive link list, to record allocated objects.
 };
 
 struct ObjString{

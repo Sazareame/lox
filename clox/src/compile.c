@@ -141,6 +141,7 @@ compile(const char *source, Chunk* chunk){
   advance(scanner);
   expression(scanner);
   consume(scanner, TOKEN_EOF, "expect end of expression");
+  if(scanner) free(scanner);
   end_compile();
   return !parser.had_error;
 }
