@@ -2,7 +2,7 @@
 #define LOX_VM_H_
 
 #include "chunk.h"
-#include "object.h"
+#include "value.h"
 
 // Max stack length
 #define STACK_MAX 255
@@ -13,9 +13,6 @@ typedef struct{
   uint8_t* ip;
   // aka. SP register, which point to the top of stack.
   Value* sp;
-  // Link list head points to objects that are allocated on the heap.  
-  // For GC.
-  Obj* objects;
   // The VM stack.
   Value stack[STACK_MAX];
 }VM;

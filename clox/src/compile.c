@@ -39,6 +39,9 @@ Parser parser;
 
 Chunk* compiling_chunk;
 
+static Obj* object_chain = NULL;
+static void insert_object(Obj*);
+
 // to parse next token
 static void advance(Scanner*);
 // same effect as advance() with type checking, which requires the next token has
@@ -131,7 +134,7 @@ ParseRule rules[] = {
 };
 
 bool
-compile(const char *source, Chunk* chunk){
+compile(const char *source, Chunk* chunk, Obj** chain){
   Scanner* scanner = init_scanner(source);
   compiling_chunk = chunk;
 
@@ -143,7 +146,14 @@ compile(const char *source, Chunk* chunk){
   consume(scanner, TOKEN_EOF, "expect end of expression");
   if(scanner) free(scanner);
   end_compile();
+  *chain = object_chain;
   return !parser.had_error;
+}
+
+static void
+insert_object(Obj* obj){
+  obj->next = object_chain;
+  object_chain = obj;
 }
 
 static void
@@ -301,7 +311,9 @@ literal(Scanner* scanner){
 
 static void
 string(Scanner* scanner){
-  emit_const(OBJ_VAL(copy_string(parser.previous.start + 1, parser.previous.length - 2)));
+  ObjString* obj = copy_string(parser.previous.start + 1, parser.previous.length - 2);
+  insert_object((Obj*)obj);
+  emit_const(OBJ_VAL(obj));
 }
 
 static ParseRule*

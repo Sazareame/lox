@@ -2,18 +2,14 @@
 #include <string.h>
 #include "memory.h"
 #include <stdio.h>
-#include "vm.h"
 
 #define ALLOCATE_OBJ(type, obj_type) \
   (type*)allocate_obj(sizeof(type), obj_type)
 
 static Obj*
-allocate_obj(VM* vm, size_t size, ObjType type){
+allocate_obj(size_t size, ObjType type){
   Obj* object = (Obj*)reallocate(NULL, 0, size);
   object->type = type;
-
-  object->next = vm->objects;
-
   return object;
 }
 

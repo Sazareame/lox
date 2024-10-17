@@ -12,17 +12,25 @@
 
 static InterpretResult run(VM*);
 static void reset_stack(VM*);
+static void insert_object(Obj*);
+static Obj* object_chain = NULL;
 
 void
 init_VM(VM** vm){
   *vm = (VM*)malloc(sizeof(VM));
   reset_stack(*vm);
-  (*vm)->objects = NULL;
 }
 
 void
-free_VM(VM *vm){
+free_VM(VM* vm){
+  free_objects(object_chain);
   if(vm) free(vm);
+}
+
+static void
+insert_object(Obj* obj){
+  obj->next = object_chain;
+  object_chain = obj;
 }
 
 InterpretResult
@@ -30,7 +38,7 @@ interpret(VM* vm, char const* source){
   Chunk chunk;
   init_chunk(&chunk);
   
-  if(!compile(source, &chunk)){
+  if(!compile(source, &chunk, &object_chain)){
     free_chunk(&chunk);
     return INTERPRET_COMPILE_ERROR;
   }
@@ -80,6 +88,7 @@ concatenate(VM* vm){
   chars[length] = '\0';
 
   ObjString* res = take_string(chars, length);
+  insert_object((Obj*)res);
   push(vm, OBJ_VAL(res));
 }
 
