@@ -12,6 +12,9 @@
 #define FREE_ARRAY(type, ptr, count) \
   reallocate(ptr, sizeof(type) * count, 0)
 
+#define ALLOCATE(type, count) \
+  (type*)reallocate(NULL, 0, sizeof(type) * (count))
+
 void* reallocate(void* ptr, size_t old, size_t new);
 
 #endif

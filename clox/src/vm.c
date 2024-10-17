@@ -1,4 +1,6 @@
 #include "vm.h"
+#include "object.h"
+#include "memory.h"
 #include "chunk.h"
 #include "value.h"
 #include <stdio.h>
@@ -6,6 +8,7 @@
 #include "debug.h"
 #include "compile.h"
 #include <stdarg.h>
+#include <string.h>
 
 static InterpretResult run(VM*);
 static void reset_stack(VM*);
@@ -64,15 +67,19 @@ is_false(Value value){
   return IS_NIL(value) || (IS_BOOL(value) && !AS_BOOL(value));
 }
 
-bool
-values_equal(Value a, Value b){
-  if(a.type != b.type) return false;
-  switch(a.type){
-    case VAL_BOOL: return AS_BOOL(a) == AS_BOOL(b);
-    case VAL_NIL: return true;
-    case VAL_NUMBER: return AS_NUMBER(a) == AS_NUMBER(b);
-    default: return false;
-  }
+static void
+concatenate(VM* vm){
+  ObjString* rhs = AS_STRING(pop(vm));
+  ObjString* lhs = AS_STRING(pop(vm));
+
+  int length = lhs->length + rhs->length;
+  char* chars = ALLOCATE(char, length + 1);
+  memcpy(chars, lhs->chars, lhs->length);
+  memcpy(chars + lhs->length, rhs->chars, rhs->length);
+  chars[length] = '\0';
+
+  ObjString* res = take_string(chars, length);
+  push(vm, OBJ_VAL(res));
 }
 
 // Reset the %rsp.
@@ -173,7 +180,16 @@ ins_neg:
   goto dispatch;
 
 ins_add:
-  BINARY(NUMBER_VAL, +);
+  if(IS_STRING(peek(vm, 0)) && IS_STRING(peek(vm, 1))){
+    concatenate(vm);
+  }else if(IS_NUMBER(peek(vm, 0)) && IS_NUMBER(peek(vm, 1))){
+    double rhs = AS_NUMBER(pop(vm));
+    double lhs = AS_NUMBER(pop(vm));
+    push(vm, NUMBER_VAL(lhs + rhs));
+  }else{
+    runtime_error(vm, "operands must be numbers or strings.");
+    return INTERPRET_RUNTIME_ERROR;
+  }
   goto dispatch;
 
 ins_sub:

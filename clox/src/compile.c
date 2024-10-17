@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "debug.h"
+#include "object.h"
 
 typedef struct{
   Token current;
@@ -75,6 +76,7 @@ static void grouping(Scanner*);
 static void unary(Scanner*);
 static void binary(Scanner*);
 static void literal(Scanner*);
+static void string(Scanner*);
 
 /*
 this table has three columns, which are:
@@ -106,7 +108,7 @@ ParseRule rules[] = {
   [TOKEN_LESS]          = {NULL,     binary,   PREC_COMPARISON},
   [TOKEN_LESS_EQUAL]    = {NULL,     binary,   PREC_COMPARISON},
   [TOKEN_IDENTIFIER]    = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_STRING]        = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_STRING]        = {string,     NULL,   PREC_NONE},
   [TOKEN_NUMBER]        = {number,   NULL,   PREC_NONE},
   [TOKEN_AND]           = {NULL,     NULL,   PREC_NONE},
   [TOKEN_CLASS]         = {NULL,     NULL,   PREC_NONE},
@@ -294,6 +296,11 @@ literal(Scanner* scanner){
     case TOKEN_TRUE: emit_byte(OP_TRUE); break;
     default: return;
   }
+}
+
+static void
+string(Scanner* scanner){
+  emit_const(OBJ_VAL(copy_string(parser.previous.start + 1, parser.previous.length - 2)));
 }
 
 static ParseRule*
