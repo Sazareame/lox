@@ -1,7 +1,23 @@
 use crate::def_opcode;
 use crate::value::Value;
 
-def_opcode!(OpCode, Return, Constant(u8), Neg, Add, Sub, Mul, Div, True, False, Nil, Not, Greater, Less, Equal);
+def_opcode!(
+  OpCode,
+  Return,
+  Constant(u8),
+  Neg,
+  Add,
+  Sub,
+  Mul,
+  Div,
+  True,
+  False,
+  Nil,
+  Not,
+  Greater,
+  Less,
+  Equal
+);
 
 /// Constant Pool used to store constant define by OP_CONSTANT,  
 /// The OP_CONSTANT could access the value it refers to by the u8 it carried as index.
@@ -25,7 +41,7 @@ impl ConstantPool {
   /// This method assert that the given index is always valid and do no bound-checking.  
   /// Also, the index is represented by u8.
   pub fn get_constant(&self, index: u8) -> Value {
-    unsafe { *self.constants.get_unchecked(index as usize) }
+    unsafe { self.constants.get_unchecked(index as usize).clone() }
   }
 }
 
@@ -52,8 +68,8 @@ impl Chunk {
     unsafe { *self.chunks.get_unchecked(pc) }
   }
 
-  pub fn get_constant(&self, index: usize) -> &Value {
-    unsafe { self.constants.constants.get_unchecked(index) }
+  pub fn get_constant(&self, index: usize) -> Value {
+    unsafe { self.constants.constants.get_unchecked(index).clone() }
   }
 
   /// Add an OpCode into the underlying data buffer hold by Chunk.

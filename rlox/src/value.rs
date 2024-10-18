@@ -1,7 +1,9 @@
-#[derive(Clone, Copy)]
+use std::rc::Rc;
+#[derive(Clone)]
 pub enum Value {
   Number(f64),
   Boolean(bool),
+  Str(Rc<String>),
   Nil,
 }
 
@@ -16,6 +18,7 @@ impl std::fmt::Display for Value {
     match self {
       Value::Number(n) => write!(f, "{}", n),
       Value::Boolean(b) => write!(f, "{}", b),
+      Value::Str(s) => write!(f, "{}", s),
       Value::Nil => write!(f, "nil"),
     }
   }
@@ -42,6 +45,18 @@ impl Value {
     }
   }
 
+  pub fn is_string(&self) -> bool {
+    matches!(self, Value::Str(_))
+  }
+
+  pub fn as_string(&self) -> Option<Rc<String>> {
+    if let Value::Str(s) = self {
+      Some(s.clone())
+    } else {
+      None
+    }
+  }
+
   /// Whether the Value is false in Lox.
   pub fn is_false(&self) -> bool {
     match self {
@@ -60,6 +75,7 @@ impl Value {
       Self::Nil => true,
       Self::Number(n) => *n == other.as_number().unwrap(),
       Self::Boolean(b) => *b == other.as_bool().unwrap(),
+      Self::Str(s) => *s == other.as_string().unwrap(),
     }
   }
 }

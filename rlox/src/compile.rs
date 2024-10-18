@@ -3,6 +3,7 @@ use crate::custom_error::CompileError;
 use crate::scanner::Scanner;
 use crate::token::*;
 use crate::value::Value;
+use std::rc::Rc;
 
 type CompileResult = Result<(), CompileError>;
 
@@ -129,7 +130,7 @@ impl Compiler {
         precedence: Precedence::None,
       }, // Ident
       ParseRule {
-        prefix: None,
+        prefix: Some(string),
         infix: None,
         precedence: Precedence::None,
       }, // Str
@@ -403,6 +404,12 @@ fn literal(compiler: &mut Compiler) -> CompileResult {
     Nil => compiler.emit_byte(OpCode::Nil),
     _ => {}
   }
+  Ok(())
+}
+
+fn string(compiler: &mut Compiler) -> CompileResult {
+  let s = compiler.previous.get_literal(compiler.scanner.source());
+  compiler.emit_const(Value::Str(Rc::new(s)));
   Ok(())
 }
 

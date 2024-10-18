@@ -1,5 +1,6 @@
 use crate::chunk::*;
 use crate::value::Value;
+use std::rc::Rc;
 
 const MAX_STACK: usize = 255;
 pub struct VM {
@@ -29,7 +30,7 @@ impl VM {
   pub fn new(chunk: Chunk) -> Self {
     Self {
       chunk,
-      stack: [Value::default(); MAX_STACK],
+      stack: std::array::from_fn(|_| Value::Nil),
       ip: 0,
       sp: 0,
     }
@@ -73,7 +74,7 @@ impl VM {
         }
         Constant(val) => {
           let constant = self.chunk.get_constant(val.into());
-          self.push(*constant);
+          self.push(constant);
         }
         Neg => match self.peek(0) {
           Value::Number(_) => {
@@ -92,7 +93,17 @@ impl VM {
         True => self.push(Value::Boolean(true)),
         False => self.push(Value::Boolean(false)),
         Nil => self.push(Value::Nil),
-        Add => binary!(self, +, Number),
+        Add => {
+          if self.peek(0).is_number() && self.peek(1).is_number() {
+            let rhs = self.pop().as_number().unwrap();
+            let lhs = self.pop().as_number().unwrap();
+            self.push(Value::Number(lhs + rhs));
+          } else if self.peek(0).is_string() && self.peek(1).is_string() {
+            let rhs = (*self.pop().as_string().unwrap()).clone();
+            let lhs = (*self.pop().as_string().unwrap()).clone();
+            self.push(Value::Str(Rc::new(lhs + &rhs)))
+          }
+        }
         Sub => binary!(self, -, Number),
         Mul => binary!(self, *, Number),
         Div => binary!(self, /, Number),
@@ -106,7 +117,7 @@ impl VM {
       }
       self.ip += 1;
       println!("== STACK ==");
-      if self.sp == 0{
+      if self.sp == 0 {
         print!("EMPTY");
       }
       for i in 0..self.sp {

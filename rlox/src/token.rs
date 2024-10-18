@@ -60,7 +60,12 @@ impl Token {
 
   /// Retrieve the literal from source
   pub fn get_literal(&self, source: &[char]) -> String {
-    unsafe { source.get_unchecked(self.start..self.end).iter().collect() }
+    // if the toketype is STR, trip the wrapping quote.
+    if let TokenType::Str = self.typ {
+      unsafe { source.get_unchecked(self.start + 1..self.end - 1).iter().collect() }
+    } else {
+      unsafe { source.get_unchecked(self.start..self.end).iter().collect() }
+    }
   }
 }
 
